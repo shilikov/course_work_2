@@ -124,19 +124,18 @@ class BlackList(Base):
     id_user = sq.Column(sq.Integer, sq.ForeignKey('user.id', ondelete='CASCADE'))
 
 #
-# class Searches(Base):
-#     __tablename__ = 'searches'
-#     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
-#     client_id = sq.Column(sq.Integer, ForeignKey('clients.id'), nullable=False)
-#     min_age = sq.Column(sq.Integer)
-#     max_age = sq.Column(sq.Integer)
-#     sex_id = sq.Column(sq.Integer)
-#     status_id = sq.Column(sq.Integer)
-#     city_id = sq.Column(sq.Integer)
-#     city_name = sq.Column(sq.String(100))
-#     updated = sq.Column(sq.TIMESTAMP(timezone=True), default=func.now())
-#     found_users = relationship('Users', secondary='searches_users')
-#
+class Searches(Base):
+    __tablename__ = 'searches'
+    id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
+    vk_id = sq.Column(sq.Integer, unique=True)
+    first_name = sq.Column(sq.String)
+    second_name = sq.Column(sq.String)
+    city = sq.Column(sq.String)
+    link = sq.Column(sq.String)
+    link_photo = sq.Column(sq.String)
+    count_likes = sq.Column(sq.Integer)
+    id_user = sq.Column(sq.Integer, sq.ForeignKey('user.id', ondelete='CASCADE'))
+
 # class SearchesUsers(Base):
 #     __tablename__ = 'searches_users'
 #     __table_args__ = (PrimaryKeyConstraint('search_id', 'user_id'),)
@@ -402,6 +401,32 @@ def add_user_photos(event_id, link_photo, count_likes, id_dating_user):
 def add_to_black_list(event_id, vk_id, first_name, second_name, city, link, link_photo, count_likes, id_user):
     try:
         new_user = BlackList(
+            vk_id=vk_id,
+            first_name=first_name,
+            second_name=second_name,
+            city=city,
+            link=link,
+            link_photo=link_photo,
+            count_likes=count_likes,
+            id_user=id_user
+        )
+        session.add(new_user)
+        session.commit()
+        write_msg(event_id,
+                  'Пользователь успешно заблокирован.')
+        return True
+    except (IntegrityError, InvalidRequestError):
+        write_msg(event_id,
+                  'Пользователь уже в черном списке.')
+        return False
+
+
+
+
+
+def add_to_searcht(event_id, vk_id, first_name, second_name, city, link, link_photo, count_likes, id_user):
+    try:
+        new_user = Searches(
             vk_id=vk_id,
             first_name=first_name,
             second_name=second_name,

@@ -19,6 +19,7 @@ class Users:
         self.sex = sex
         self.hometown = hometown
 
+
     def search_users(self):
         all_user = []
         profile = 'https://vk.com/id'
@@ -101,9 +102,9 @@ class Music:
 
 
 
-# Api_connect()
-# user = User(1, 18, 20, 'москва')
-# print(user.search_users())
+Api_connect()
+user = Users(1, 18, 20, 'москва')
+print(user.search_users())
 # photo = Photo(686541705)
 # print(photo.get_photo())
 
