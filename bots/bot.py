@@ -1,9 +1,10 @@
 import vk_api, json
 from vk_api.longpoll import VkLongPoll, VkEventType
 from data_search.data_search import Users, Photo
-from data_base.db import engine, Session, write_msg, register_user, add_user, add_user_photos, add_to_black_list, \
+from data_base.db import engine, Session
+from data_base.db_func import write_msg, register_user, add_user, add_user_photos, add_to_black_list, \
     check_db_user, check_db_black, check_db_favorites, check_db_master, delete_db_blacklist, delete_db_favorites, \
-    add_to_searcht
+    add_to_searcht, check_db_searcht
 from VK_token import group_token
 from keyboards.keyboards import *
 
@@ -101,8 +102,9 @@ class Bot:
                 write_msg(ids, 'Vkinder - для активации бота.')
                 break
 
+    # проверяем посковый запрос пользователя
     def go_to_search(self, ids):
-        all_users = check_db_search(ids)
+        all_users = check_db_searcht(ids)
         write_msg(ids, f'Анкеты:')
         for num, user in enumerate(all_users):
             write_msg(ids, f'{user.first_name}, {user.second_name}, {user.link}')
@@ -126,10 +128,11 @@ class Bot:
 
 
 
+
     def run(self):
         bot = Bot()
         serh_us = {}
-        search_uss =[]
+        search_uss = []
 
         while True:
             msg_text, user_id = bot.pattern_bot()
@@ -141,7 +144,6 @@ class Bot:
                     write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
                     bot.reg_new_user(user_id)
                     sg_text, user_id = bot.pattern_bot()
-
 
                     # Регистрируем пользователя в БД
                     # if msg_text.lower() == 'да':
@@ -161,7 +163,6 @@ class Bot:
                             sex = 0
                             # serh_us['sex'] = sex
                             search_uss.append(sex)
-
 
                         if msg_text.lower() == 'девушка':
                             sex = 1
@@ -187,14 +188,10 @@ class Bot:
                         else:
                             search_uss.append(age_from)
 
-
-
                         write_msg(user_id, 'введите возраст до - ')
                         msg_text, user_id = bot.pattern_bot()
                         age_to = msg_text
                         search_uss.append(age_to)
-
-
 
                         write_msg(user_id, 'введите город - .')
 
@@ -212,11 +209,10 @@ class Bot:
                         # json_create(result)
                         current_user_id = check_db_master(user_id)
 
-
                         # Производим отбор анкет
                         for i in range(len(result)):
                             print(result[i]['id'], result[i]['last_name'],
-                                             result[i]['first_name'], hometown, result[i]['profile'])
+                                  result[i]['first_name'], hometown, result[i]['profile'])
                             dating_user, blocked_user = check_db_user(result[i]['id'])
                             # Получаем фото и сортируем по лайкам
                             photo = Photo(result[i]['id'])
@@ -238,25 +234,20 @@ class Bot:
                                     write_msg(user_id, f'фото:',
                                               attachment=sorted_user_photo[photo][1])
 
-
-
-
-
                             # Ждем пользовательский ввод
-                            if i >= len(result) - 1:
-                                bot.show_info(user_id)
-
-                            try:
-
-                                add_to_searcht(user_id, result[i]['id'], result[i]['last_name'],
-                                                  result[i]['first_name'], hometown, result[i]['profile'],
-                                                  sorted_user_photo[-1][1], result[i]['id'], current_user_id.id)
-                            except IndexError:
-                                for photo in range(len(sorted_user_photo)):
-                                    add_to_searcht(user_id, result[i]['id'], result[i]['last_name'],
-                                                   result[i]['first_name'], hometown, result[i]['profile'],
-                                                   sorted_user_photo[photo][1], result[i]['id'] ,current_user_id.id)
-
+                            # if i >= len(result) - 1:
+                            #     bot.show_info(user_id)
+                            #
+                            # try:
+                            #
+                            #     add_to_searcht(user_id, result[i]['id'], result[i]['last_name'],
+                            #                    result[i]['first_name'], hometown, result[i]['profile'],
+                            #                    sorted_user_photo[-1][1], result[i]['id'], current_user_id.id)
+                            # except IndexError:
+                            #     for photo in range(len(sorted_user_photo)):
+                            #         add_to_searcht(user_id, result[i]['id'], result[i]['last_name'],
+                            #                        result[i]['first_name'], hometown, result[i]['profile'],
+                            #                        sorted_user_photo[photo][1], result[i]['id'], current_user_id.id)
 
                             write_msg(user_id, '1 - Добавить, 2 - Заблокировать, 0 - Далее, \nq - выход из поиска')
                             msg_text, user_id = bot.pattern_bot()
@@ -273,7 +264,8 @@ class Bot:
                                 # Пробуем добавить анкету в БД
                                 try:
                                     add_user(user_id, result[i]['id'], result[i]['last_name'],
-                                             result[i]['first_name'], hometown, result[i]['profile'], current_user_id.id)
+                                             result[i]['first_name'], hometown, result[i]['profile'],
+                                             current_user_id.id)
                                     # Пробуем добавить фото анкеты в БД
                                     add_user_photos(user_id, sorted_user_photo[0][1],
                                                     sorted_user_photo[0][0], current_user_id.id)
@@ -288,7 +280,7 @@ class Bot:
                                     bot.show_info(user_id)
                                 # Блокируем
                                 add_to_black_list(user_id, result[i]['id'], result[i]['last_name'],
-                                             result[i]['first_name'], hometown, result[i]['profile'],
+                                                  result[i]['first_name'], hometown, result[i]['profile'],
                                                   sorted_user_photo[0][1],
                                                   sorted_user_photo[0][0], current_user_id.id)
                             elif msg_text.lower() == 'q':
