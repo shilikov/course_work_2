@@ -131,8 +131,8 @@ class Bot:
 
     def run(self):
         bot = Bot()
-        serh_us = {}
-        search_uss = []
+        # serh_us = {}
+        # search_uss = []
 
         while True:
             msg_text, user_id = bot.pattern_bot()
@@ -149,6 +149,7 @@ class Bot:
                     # if msg_text.lower() == 'да':
                     #     bot.reg_new_user(user_id)
                 if current_user_id:
+                    search_uss = []
                     # msg_text, user_id = bot.loop_bot()
                     write_msg(user_id, 'Выберите действие', shop_key)
                     bot.menu_bot(user_id)
