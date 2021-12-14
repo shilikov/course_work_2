@@ -7,6 +7,10 @@ from data_base.db_func import write_msg, register_user, add_user, add_user_photo
     add_to_searcht, check_db_searcht
 from VK_token import group_token
 from keyboards.keyboards import *
+from logers.logers import log_to_console
+
+
+
 
 class Bot:
 
@@ -17,13 +21,17 @@ class Bot:
         self.session = Session()
         self.connection = engine.connect()
 
+
     @staticmethod
+
     def pattern_bot():
         bot = Bot()
+
         for this_event in bot.longpoll.listen():
             if this_event.type == VkEventType.MESSAGE_NEW:
                 if this_event.to_me:
                     user_id = this_event.user_id
+                    check_db_master(user_id)
                     message_text = this_event.text
                     return message_text, this_event.user_id
 
@@ -130,13 +138,15 @@ class Bot:
 
 
     def run(self):
-        bot = Bot()
-        # serh_us = {}
-        # search_uss = []
 
+        bot = Bot()
         while True:
+
+
+
             msg_text, user_id = bot.pattern_bot()
             bot.hi(user_id)
+
             if msg_text == "start":
                 current_user_id = check_db_master(user_id)
                 if not current_user_id:
@@ -157,23 +167,17 @@ class Bot:
                     msg_text, user_id = bot.pattern_bot()
                     if msg_text == 'поиск':
                         write_msg(user_id, 'введите пол кого хотите найти')
-
                         msg_text, user_id = bot.pattern_bot()
                         sex = msg_text
                         if msg_text == 'М Ж':
                             sex = 0
-                            # serh_us['sex'] = sex
                             search_uss.append(sex)
-
                         if msg_text.lower() == 'девушка':
                             sex = 1
-                            # serh_us['sex'] = sex
                             search_uss.append(sex)
                         if msg_text.lower() == 'мужчина':
                             sex = 2
-                            serh_us['sex'] = sex
                             search_uss.append(sex)
-                        # age_from = msg_text[8:10]
                         write_msg(user_id, 'введите возраст от - (минимальный возраст 18)')
 
                         msg_text, user_id = bot.pattern_bot()
@@ -190,6 +194,7 @@ class Bot:
                             search_uss.append(age_from)
 
                         write_msg(user_id, 'введите возраст до - ')
+
                         msg_text, user_id = bot.pattern_bot()
                         age_to = msg_text
                         search_uss.append(age_to)
@@ -197,12 +202,9 @@ class Bot:
                         write_msg(user_id, 'введите город - .')
 
                         msg_text, user_id = bot.pattern_bot()
-
                         hometown = msg_text
-
-                        # serh_us[hometown] = hometown
                         search_uss.append(hometown)
-                        # print(search_uss)
+
 
                         # Ищем анкеты
                         user = Users(*search_uss)
@@ -234,6 +236,7 @@ class Bot:
                                 for photo in range(len(sorted_user_photo)):
                                     write_msg(user_id, f'фото:',
                                               attachment=sorted_user_photo[photo][1])
+
 
                             # Ждем пользовательский ввод
                             # if i >= len(result) - 1:

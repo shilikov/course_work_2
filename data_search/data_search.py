@@ -2,6 +2,8 @@ import vk_api
 from vk_api.longpoll import VkLongPoll
 from VK_token import VK_api_V, user_token, group_token
 from vk_api.exceptions import ApiError
+from logers.logers import log_to_console
+
 
 
 class Api_connect:
@@ -19,7 +21,7 @@ class Users:
         self.sex = sex
         self.hometown = hometown
 
-
+    @log_to_console
     def search_users(self):
         all_user = []
         profile = 'https://vk.com/id'
@@ -51,7 +53,7 @@ class Users:
 
         return all_user
 
-
+@log_to_console
 class Photo:
     def __init__(self, user_owner_id):
         self.user_owner_id = user_owner_id
@@ -103,8 +105,8 @@ class Music:
 
 
 Api_connect()
-user = Users(1, 18, 20, 'москва')
-print(user.search_users())
+# user = Users(1, 18, 20, 'москва')
+# print(user.search_users())
 # photo = Photo(686541705)
 # print(photo.get_photo())
 
