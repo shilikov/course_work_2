@@ -7,6 +7,7 @@ from logers.logers import log_to_console
 
 
 class Api_connect:
+
     def __init__(self):
         self.token = group_token
         self.vk = vk_api.VkApi(token=self.token)
@@ -53,7 +54,7 @@ class Users:
 
         return all_user
 
-@log_to_console
+# @log_to_console
 class Photo:
     def __init__(self, user_owner_id):
         self.user_owner_id = user_owner_id

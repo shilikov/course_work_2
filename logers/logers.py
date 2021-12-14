@@ -5,8 +5,8 @@ from logging.handlers import RotatingFileHandler
 from typing import Callable, Any
 from pprint import pprint
 
-def log_to_console(func):
-    def loger(*args, **kwargs):
+def log_to_console(func) -> Callable:
+    def loger(*args, **kwargs) -> Any:
         date = datetime.date(datetime.now())
         times = datetime.time(datetime.now())
         func_name = func.__name__
@@ -30,33 +30,14 @@ def log_to_console(func):
     return loger
 
 
-#
 
-# from random import randrange
-#
-# import vk_api
-# from vk_api.longpoll import VkLongPoll, VkEventType
-# from VK_token import group_token
-#
-#
-#
-# vk = vk_api.VkApi(token=group_token)
-# longpoll = VkLongPoll(vk)
-#
-#
-# def write_msg(user_id, message):
-#     vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7),})
-#
-#
-# for event in longpoll.listen():
-#     if event.type == VkEventType.MESSAGE_NEW:
-#
-#         if event.to_me:
-#             request = event.text
-#
-#             if request == "привет":
-#                 write_msg(event.user_id, f"Хай, {event.user_id}")
-#             elif request == "пока":
-#                 write_msg(event.user_id, "Пока((")
-#             else:
-#                 write_msg(event.user_id, "Не поняла вашего ответа...")
+def log(message, sep='\n'):
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S:%f")
+    if type(message) in [list, dict, tuple, set]:
+        message = [f'{now} - {x}' for x in message]
+        print(*message, sep=sep)
+    else:
+        print(f'{now} - {message}', sep=sep)
+
+
+

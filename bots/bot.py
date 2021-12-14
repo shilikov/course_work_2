@@ -7,7 +7,7 @@ from data_base.db_func import write_msg, register_user, add_user, add_user_photo
     add_to_searcht, check_db_searcht
 from VK_token import group_token
 from keyboards.keyboards import *
-from logers.logers import log_to_console
+from logers.logers import log_to_console, log
 
 
 
@@ -31,7 +31,10 @@ class Bot:
             if this_event.type == VkEventType.MESSAGE_NEW:
                 if this_event.to_me:
                     user_id = this_event.user_id
-                    check_db_master(user_id)
+                    session = Session()
+                    print(log(f'[пользователь с ID - {user_id} подключен к сессии - {session}]'))
+
+                    check_db_master(user_id, session=session)
                     message_text = this_event.text
                     return message_text, this_event.user_id
 
@@ -60,7 +63,7 @@ class Bot:
     def reg_new_user(self, id_num):
         write_msg(id_num, 'Вы прошли регистрацию.')
         write_msg(id_num,
-                  f"ctart - для активации бота\n")
+                  f"start - для активации бота\n")
         register_user(id_num)
 
 
@@ -145,10 +148,14 @@ class Bot:
 
 
             msg_text, user_id = bot.pattern_bot()
+            session = Session()
+            # current_user_id = check_db_master(user_id, session)
+
             bot.hi(user_id)
 
             if msg_text == "start":
-                current_user_id = check_db_master(user_id)
+                # current_user_id = check_db_master(user_id)
+                current_user_id = check_db_master(user_id, session)
                 if not current_user_id:
                     msg_text, user_id = bot.pattern_bot()
                     write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
@@ -210,7 +217,7 @@ class Bot:
                         user = Users(*search_uss)
                         result = user.search_users()
                         # json_create(result)
-                        current_user_id = check_db_master(user_id)
+                        current_user_id = check_db_master(user_id,session=session)
 
                         # Производим отбор анкет
                         for i in range(len(result)):
@@ -298,3 +305,37 @@ class Bot:
                     # Переходим в черный список
                     elif msg_text == 'спам':
                         bot.go_to_blacklist(user_id)
+
+
+
+
+#
+
+# from random import randrange
+#
+# import vk_api
+# from vk_api.longpoll import VkLongPoll, VkEventType
+# from VK_token import group_token
+#
+#
+#
+# vk = vk_api.VkApi(token=group_token)
+# longpoll = VkLongPoll(vk)
+#
+#
+# def write_msg(user_id, message):
+#     vk.method('messages.send', {'user_id': user_id, 'message': message,  'random_id': randrange(10 ** 7),})
+#
+#
+# for event in longpoll.listen():
+#     if event.type == VkEventType.MESSAGE_NEW:
+#
+#         if event.to_me:
+#             request = event.text
+#
+#             if request == "привет":
+#                 write_msg(event.user_id, f"Хай, {event.user_id}")
+#             elif request == "пока":
+#                 write_msg(event.user_id, "Пока((")
+#             else:
+#                 write_msg(event.user_id, "Не поняла вашего ответа...")

@@ -37,7 +37,7 @@ def delete_db_favorites(ids):
 
 
 # проверят зареган ли пользователь бота в БД
-def check_db_master(ids):
+def check_db_master(ids, session):
     current_user_id = session.query(User).filter_by(vk_id=ids).first()
     return current_user_id
 
