@@ -1,6 +1,31 @@
-import vk_api
+import vk_api, json
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
-# from enum import Enum
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
+
+# class Keyboards:
+#     @staticmethod
+#     def show_default():
+#         keyboard = VkKeyboard(one_time=False)
+#         keyboard.add_button('Поиск', color=VkKeyboardColor.PRIMARY)
+#         keyboard.add_button('Картинка', color=VkKeyboardColor.PRIMARY)
+#         keyboard.add_line()
+#         keyboard.add_button('Спрячь клавиатуру', color=VkKeyboardColor.POSITIVE)
+#         keyboard.add_line()
+#         keyboard.add_openlink_button('RICKROLL', link='https://www.youtube.com/watch?v=dQw4w9WgXcQ')
+#         return keyboard.get_keyboard()
+#
+#     @staticmethod
+#     def hide():
+#         return VkKeyboard.get_empty_keyboard()
+
+
+
+
+
+
+
+
+from enum import Enum
 # class Keyboards:
 #     @staticmethod
 #     def show_default():
@@ -26,7 +51,7 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
 #     search = ('искать', 'поиск', 'фас', 'ищи', 'найди')
 #     picture = ('фото', 'картинка', 'мем', 'фоточка', 'изображение')
 #     # bye = ('пока', 'досвидания', 'bye-bye', 'good bye', 'пока-пока', 'bye')
-#
+
 #
 #
 #
@@ -46,27 +71,27 @@ from vk_api.keyboard import VkKeyboard, VkKeyboardColor, VkKeyboardButton
 # longpol = VkLongPoll(vk_session)
 #
 #
-# def get_but(text, color):
-#     return {
-#         "action": {
-#             "type": "text",
-#             "payload": "{\"button\": \"" + "1" + "\"}",
-#             "label": f"{text}"
-#         },
-#         "color": f"{color}"
-#     }
-#
-#
-# keyboard = {
-#     "one_time": True,
-#     "buttons": [
-#         [get_but('начать поиск', 'positive'), get_but('посмотреть избранное', 'positive')],
-#         [get_but('посмотреть заблокированых', 'positive'), get_but('поиграть', 'positive')]
-#     ]
-# }
-# keyboard = json.dumps(keyboard, ensure_ascii=False).encode('utf-8')
-# keyboard = str(keyboard.decode('utf-8'))
-#
+def get_but(text, color):
+    return {
+        "action": {
+            "type": "text",
+            "payload": "{\"button\": \"" + "1" + "\"}",
+            "label": f"{text}"
+        },
+        "color": f"{color}"
+    }
+
+
+keyboards = {
+    "one_time": True,
+    "buttons": [
+        [get_but('начать поиск', 'positive'), get_but('посмотреть избранное', 'positive')],
+        [get_but('посмотреть заблокированых', 'positive'), get_but('поиграть', 'positive')]
+    ]
+}
+keyboards = json.dumps(keyboards, ensure_ascii=False).encode('utf-8')
+keyboards = str(keyboards.decode('utf-8'))
+
 #
 # def sender(id, text):
 #     vk_session.method('messages.send', {'user_id': id, 'message': text, 'random_id': 0, 'keyboard': keyboard})

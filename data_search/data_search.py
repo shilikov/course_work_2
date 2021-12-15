@@ -3,6 +3,7 @@ from vk_api.longpoll import VkLongPoll
 from VK_token import VK_api_V, user_token, group_token
 from vk_api.exceptions import ApiError
 from logers.logers import log_to_console
+from pprint import pprint
 
 
 
@@ -102,10 +103,28 @@ class Music:
         ...
 
 
+class Cities:
+
+    def __init__(self):
+        res = []
+        vk_ = vk_api.VkApi(token=user_token)
+        response = vk_.method('database.getCities', {
+            'country_id': 1,
+            'need_all': 1,
+            'count': 1000})
+        res.append(response['items'])
+
+
+    # return sorted(response['items'])
+
+
+
 
 
 
 Api_connect()
+# sity = cities()
+
 # user = Users(1, 18, 20, 'москва')
 # print(user.search_users())
 # photo = Photo(686541705)

@@ -1,5 +1,6 @@
 
 from data_base.db import *
+from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 
 
 
@@ -80,13 +81,14 @@ def check_db_searcht(ids):
 
 
 # Пишет сообщение пользователю
-def write_msg(user_id, message, attachment=None, keboard = None):
+def write_msg(user_id, message, keyboard=None, attachment=None):
+
     vk.method('messages.send',
               {'user_id': user_id,
                'message': message,
                'random_id': randrange(10 ** 7),
                'attachment': attachment,
-               'keboard': keboard})
+               'keboard': keyboard})
 
 
 # Регистрация пользователя
