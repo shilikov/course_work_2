@@ -184,8 +184,8 @@ def add_to_black_list(event_id, vk_id,
 
 def add_to_searcht(event_id, vk_id,
                    first_name, second_name,
-                   city, link, link_photo,
-                   count_likes, id_user):
+                   city, link,
+                   id_user):
     try:
         new_user = Searches(
             vk_id=vk_id,
@@ -193,8 +193,6 @@ def add_to_searcht(event_id, vk_id,
             second_name=second_name,
             city=city,
             link=link,
-            link_photo=link_photo,
-            count_likes=count_likes,
             id_user=id_user
         )
         session.add(new_user)

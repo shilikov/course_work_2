@@ -5,11 +5,11 @@ from data_search.data_search import Users, Photo
 from data_base.db import engine, Session
 from data_base.db_func import write_msg, \
     register_user, add_user, \
-    add_user_photos, add_to_black_list, \
+    add_to_black_list, \
     check_db_user, check_db_black, \
     check_db_favorites, check_db_master, \
     delete_db_blacklist, delete_db_favorites, \
-    check_db_searcht
+    check_db_searcht, add_to_searcht
 from VK_token import group_token
 from logers.logers import log
 from pprint import pprint
@@ -313,32 +313,6 @@ class Bot:
                                                       photo][1])
 
                                 # Ждем пользовательский ввод
-                                # if i >= len(result) - 1:
-                                #     bot.show_info(user_id)
-                                #
-                                # try:
-                                #     add_to_searcht(user_id,
-                                #     result[i]['id'],
-                                #     result[i]['last_name'],
-                                #                    result[i]['first_name'],
-                                #                    hometown,
-                                #                    result[i]['profile'],
-                                #                    sorted_user_photo[-1][1],
-                                #                    result[i]['id'],
-                                #                    current_user_id.id)
-                                # except IndexError:
-                                #     for photo in range(len(
-                                #     sorted_user_photo)):
-                                #         add_to_searcht(
-                                #         user_id,
-                                #         result[i]['id'],
-                                #         result[i]['last_name'],
-                                #                        result[i]['first_name'],
-                                #                        hometown,
-                                #                        result[i]['profile'],
-                                #                        sorted_user_photo[photo][1],
-                                #                        result[i]['id'],
-                                #                        current_user_id.id)
 
                                 write_msg(user_id, '1 - Добавить, '
                                                    '2 - Заблокировать, '
