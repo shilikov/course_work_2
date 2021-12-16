@@ -1,9 +1,8 @@
 from datetime import datetime
 from time import time
-import logging
-from logging.handlers import RotatingFileHandler
 from typing import Callable, Any
 from pprint import pprint
+
 
 def log_to_console(func) -> Callable:
     def loger(*args, **kwargs) -> Any:
@@ -17,18 +16,14 @@ def log_to_console(func) -> Callable:
         print()
 
         pprint(
-            f"date: {date}\n"
-              f"time: {times}\n"
-              f"name: {func_name}\n"
-              f"args: {args, kwargs}\n"
-              f"result: {result}\n"
-              f'функция работала {elapsed} секунд(ы)'
-              )
-
-
+            f"date: {date} time: {times} "
+            f"name: {func_name} "
+            f"args: {args, kwargs} "
+            f"result: {result}"
+            f"'функция работала {elapsed} секунд(ы)'")
         return result
-    return loger
 
+    return loger
 
 
 def log(message, sep='\n'):
@@ -38,6 +33,3 @@ def log(message, sep='\n'):
         print(*message, sep=sep)
     else:
         print(f'{now} - {message}', sep=sep)
-
-
-

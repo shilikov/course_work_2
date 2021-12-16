@@ -1,17 +1,18 @@
 
-from data_base.db import *
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-
-
+from data_base.db import Searches, BlackList, User, DatingUser, Photos
+from sqlalchemy.exc import IntegrityError, InvalidRequestError
+import vk_api
+from vk_api.longpoll import VkLongPoll
+from VK_token import group_token
+from random import randrange
+import sqlalchemy as sq
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 """
 ФУНКЦИИ РАБОТЫ С БД
 """
-
-
 Base = declarative_base()
-
-
 engine = sq.create_engine('postgresql://postgres@localhost:5432/vkinder',
                           client_encoding='utf8')
 Session = sessionmaker(bind=engine)
@@ -23,65 +24,77 @@ longpoll = VkLongPoll(vk)
 session = Session()
 connection = engine.connect()
 
-# Удаляет пользователя из черного списка
+
 def delete_db_blacklist(ids):
-    current_user = session.query(BlackList).filter_by(vk_id=ids).first()
+    # Удаляет пользователя из черного списка
+    current_user = session.query(
+        BlackList).filter_by(
+        vk_id=ids).first()
     session.delete(current_user)
     session.commit()
 
 
-# Удаляет пользователя из избранного
 def delete_db_favorites(ids):
-    current_user = session.query(DatingUser).filter_by(vk_id=ids).first()
+    # Удаляет пользователя из избранного
+    current_user = session.query(
+        DatingUser).filter_by(
+        vk_id=ids).first()
     session.delete(current_user)
     session.commit()
 
 
-# проверят зареган ли пользователь бота в БД
 def check_db_master(ids, session):
-    current_user_id = session.query(User).filter_by(vk_id=ids).first()
+    # проверят зареган ли пользователь бота в БД
+    current_user_id = session.query(
+        User).filter_by(
+        vk_id=ids).first()
     return current_user_id
 
 
-# проверят есть ли юзер в бд
 def check_db_user(ids):
+    # проверят есть ли юзер в бд
     dating_user = session.query(DatingUser).filter_by(
         vk_id=ids).first()
     blocked_user = session.query(BlackList).filter_by(
         vk_id=ids).first()
+
     return dating_user, blocked_user
 
 
-# Проверят есть ли юзер в черном списке
 def check_db_black(ids):
+    # Проверят есть ли юзер в черном списке
     current_users_id = session.query(User).filter_by(vk_id=ids).first()
     # Находим все анкеты из избранного которые добавил данный юзер
-    all_users = session.query(BlackList).filter_by(id_user=current_users_id.id).all()
+    all_users = session.query(
+        BlackList).filter_by(
+        id_user=current_users_id.id).all()
     return all_users
 
 
-# Проверяет есть ли юзер в избранном
 def check_db_favorites(ids):
-    current_users_id = session.query(User).filter_by(vk_id=ids).first()
+    # Проверяет есть ли юзер в избранном
+    current_users_id = session.query(
+        User).filter_by(
+        vk_id=ids).first()
     # Находим все анкеты из избранного которые добавил данный юзер
-    alls_users = session.query(DatingUser).filter_by(id_user=current_users_id.id).all()
+    alls_users = session.query(
+        DatingUser).filter_by(
+        id_user=current_users_id.id).all()
     return alls_users
 
 
 def check_db_searcht(ids):
-    current_users_id = session.query(User).filter_by(vk_id=ids).first()
+    current_users_id = session.query(
+        User).filter_by(vk_id=ids).first()
     # Находим все анкеты из избранного которые добавил данный юзер
-    all_users = session.query(Searches).filter_by(id_user=current_users_id.id).all()
+    all_users = \
+        session.query(Searches).filter_by(
+            id_user=current_users_id.id).all()
     return all_users
 
 
-
-
-
-
-
-# Пишет сообщение пользователю
 def write_msg(user_id, message, keyboard=None, attachment=None):
+    # Пишет сообщение пользователю
 
     vk.method('messages.send',
               {'user_id': user_id,
@@ -91,8 +104,8 @@ def write_msg(user_id, message, keyboard=None, attachment=None):
                'keboard': keyboard})
 
 
-# Регистрация пользователя
 def register_user(vk_id):
+    # Регистрация пользователя
     try:
         new_user = User(
             vk_id=vk_id
@@ -104,8 +117,8 @@ def register_user(vk_id):
         return False
 
 
-# Сохранение выбранного пользователя в БД
 def add_user(event_id, vk_id, first_name, second_name, city, link, id_user):
+    # Сохранение выбранного пользователя в БД
     try:
         new_user = DatingUser(
             vk_id=vk_id,
@@ -126,10 +139,8 @@ def add_user(event_id, vk_id, first_name, second_name, city, link, id_user):
         return False
 
 
-# Сохранение в БД фото добавленного пользователя
-
-
 def add_user_photos(event_id, link_photo, count_likes, id_dating_user):
+    # Сохранение в БД фото добавленного пользователя
     try:
         new_user = Photos(
             link_photo=link_photo,
@@ -147,8 +158,10 @@ def add_user_photos(event_id, link_photo, count_likes, id_dating_user):
         return False
 
 
-# Добавление пользователя в черный список
-def add_to_black_list(event_id, vk_id, first_name, second_name, city, link, link_photo, count_likes, id_user):
+def add_to_black_list(event_id, vk_id,
+                      first_name, second_name,
+                      city, link, id_user):
+    # Добавление пользователя в черный список
     try:
         new_user = BlackList(
             vk_id=vk_id,
@@ -156,8 +169,6 @@ def add_to_black_list(event_id, vk_id, first_name, second_name, city, link, link
             second_name=second_name,
             city=city,
             link=link,
-            link_photo=link_photo,
-            count_likes=count_likes,
             id_user=id_user
         )
         session.add(new_user)
@@ -171,10 +182,10 @@ def add_to_black_list(event_id, vk_id, first_name, second_name, city, link, link
         return False
 
 
-
-
-
-def add_to_searcht(event_id, vk_id, first_name, second_name, city, link, link_photo, count_likes, id_user):
+def add_to_searcht(event_id, vk_id,
+                   first_name, second_name,
+                   city, link, link_photo,
+                   count_likes, id_user):
     try:
         new_user = Searches(
             vk_id=vk_id,
