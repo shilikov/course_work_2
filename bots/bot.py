@@ -25,8 +25,8 @@ class Bot:
         self.session = requests.Session()
         self.connection = engine.connect()
 
-    @staticmethod
-    def pattern_bot():
+
+    def pattern_bot(self):
         session = requests.Session()
         vk_session = vk_api.VkApi(token=group_token)
         # vk = vk_session.get_api()
@@ -146,132 +146,181 @@ class Bot:
                 write_msg(ids, 'Vkinder - для активации бота.')
                 break
 
-    def run(self):
-        bot = Bot()
-        msg_text, user_id = bot.pattern_bot()
+    def method_photo(self, i, photo, result, user_id, user_photo):
+        sorted_user_photo = photo.sort_likes(
+            user_photo)
+        # Выводим отсортированные
+        # данные
+        # по анкетам
+        write_msg(
+            user_id, f'\n{result[i]["first_name"]}'
+                     f'{result[i]["last_name"]} '
+                     f'{result[i]["profile"]}', )
+        try:
+            write_msg(user_id, 'фото:',
+                      attachment=','.join
+                      ([sorted_user_photo[-1][1],
+                        sorted_user_photo[-2][1],
+                        sorted_user_photo[-3][1]]))
+            print(sorted_user_photo)
+        except IndexError:
+            for photo in range(len(sorted_user_photo)):
+                write_msg(user_id, 'фото:',
+                          attachment=sorted_user_photo[
+                              photo][1])
+
+    def pattern_search(self, current_user_id, search_uss, session):
+        msg_text, user_id = self.pattern_bot()
+        sex = msg_text
+        if msg_text == 'М Ж':
+            sex = 0
+            search_uss.append(sex)
+        if msg_text.lower() == 'девушка':
+            sex = 1
+            search_uss.append(sex)
+        if msg_text.lower() == 'парень':
+            sex = 2
+            search_uss.append(sex)
+        write_msg(user_id,
+                  'введите возраст '
+                  'от - (минимальный возраст 18)')
+        msg_text, user_id = self.pattern_bot()
+        age_from = msg_text
+        if int(age_from) < 18:
+            write_msg(user_id, post1)
+            age_from = 18
+            search_uss.append(age_from)
+        else:
+            search_uss.append(age_from)
+        write_msg(user_id, 'введите возраст до - ')
+        msg_text, user_id = self.pattern_bot()
+        age_to = msg_text
+        search_uss.append(age_to)
+        write_msg(user_id, 'введите город - .')
+        msg_text, user_id = self.pattern_bot()
+        hometown = msg_text
+        search_uss.append(hometown)
+        # Ищем анкеты
+        user = Users(*search_uss)
+        result = user.search_users()
+        search_uss.clear()
+        # json_create(result)
+        current_user_id = check_db_master(
+            user_id, session=session)
+        return current_user_id, hometown, result, user_id
+
+    def keyboard3(self, user_id, vk):
+        keyboard3 = VkKeyboard(one_time=True)
+        keyboard3.get_empty_keyboard()
+        keyboard3.add_button('добавить в избранное',
+                             VkKeyboardColor.SECONDARY)
+        keyboard3.add_button('заблокировать',
+                             VkKeyboardColor.POSITIVE)
+        keyboard3.add_line()
+        keyboard3.add_button('далее',
+                             VkKeyboardColor.NEGATIVE)
+        keyboard3.add_button('выход',
+                             VkKeyboardColor.NEGATIVE)
+        vk.messages.send(
+            peer_id=user_id,
+            random_id=get_random_id(),
+            keyboard=keyboard3.get_keyboard(),
+            message='введите пол кого хотите найти'
+        )
+
+    def keyboard2(self, user_id, vk):
+        keyboard2 = VkKeyboard(one_time=True)
+        keyboard2.get_empty_keyboard()
+        keyboard2.add_button('М Ж',
+                             VkKeyboardColor.SECONDARY)
+        keyboard2.add_button('девушка',
+                             VkKeyboardColor.POSITIVE)
+        keyboard2.add_button('парень',
+                             VkKeyboardColor.NEGATIVE)
+        vk.messages.send(
+            peer_id=user_id,
+            random_id=get_random_id(),
+            keyboard=keyboard2.get_keyboard(),
+            message='введите пол кого хотите найти'
+        )
+
+    def keyboard1(self):
+        keyboard = VkKeyboard(one_time=True)
+        keyboard.add_button('поиск',
+                            color=VkKeyboardColor.SECONDARY)
+        keyboard.add_line()
+        keyboard.add_button('избранное',
+                            color=VkKeyboardColor.POSITIVE)
+        keyboard.add_line()
+        keyboard.add_button('спам',
+                            color=VkKeyboardColor.NEGATIVE)
+        return keyboard
+
+    def method_reg_user(self, session, user_id):
+        current_user_id = check_db_master(user_id, session)
+        if not current_user_id:
+            msg_text, user_id = self.pattern_bot()
+            write_msg(user_id, 'вы не зарегистрированы, '
+                               'пройдите регистрацию')
+
+            self.reg_new_user(user_id)
+            sg_text, user_id = self.pattern_bot()
+
+            # Регистрируем пользователя в БД
+            # if msg_text.lower() == 'да':
+            #     bot.reg_new_user(user_id)
+        return current_user_id, user_id
+
+    def run_bot(self):
+        msg_text, user_id = self.pattern_bot()
         session = Session()
         current_user_id = check_db_master(user_id, session)
         if not current_user_id:
-            msg_text, user_id = bot.pattern_bot()
+            msg_text, user_id = self.pattern_bot()
             write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
-            bot.reg_new_user(user_id)
+            self.reg_new_user(user_id)
+        return session, user_id
 
+
+
+
+
+    def run(self):
+        session, user_id = self.run_bot()
         while True:
-
-            bot.hi(user_id)
-            msg_text, user_id = bot.pattern_bot()
-
+            self.hi(user_id)
+            msg_text, user_id = self.pattern_bot()
             if msg_text == "start":
-                current_user_id = check_db_master(user_id, session)
-                if not current_user_id:
-                    msg_text, user_id = bot.pattern_bot()
-                    write_msg(user_id, 'вы не зарегистрированы, '
-                                       'пройдите регистрацию')
-
-                    bot.reg_new_user(user_id)
-                    sg_text, user_id = bot.pattern_bot()
-
-                    # Регистрируем пользователя в БД
-                    # if msg_text.lower() == 'да':
-                    #     bot.reg_new_user(user_id)
+                current_user_id, user_id = self.method_reg_user(session, user_id)
                 if current_user_id:
                     search_uss = []
                     # msg_text, user_id = bot.loop_bot()
                     write_msg(user_id, 'Выберите действие')
                     vk_session = vk_api.VkApi(token=group_token)
                     vk = vk_session.get_api()
-
-                    keyboard = VkKeyboard(one_time=True)
-                    keyboard.add_button('поиск',
-                                        color=VkKeyboardColor.SECONDARY)
-                    keyboard.add_line()
-                    keyboard.add_button('избранное',
-                                        color=VkKeyboardColor.POSITIVE)
-                    keyboard.add_line()
-                    keyboard.add_button('спам',
-                                        color=VkKeyboardColor.NEGATIVE)
-
+                    keyboard = self.keyboard1()
                     for event in self.longpoll.listen():
                         if event.type == VkEventType.MESSAGE_NEW:
-
                             if event.to_me:
                                 ...
-
                         vk.messages.send(
                             peer_id=user_id,
                             random_id=get_random_id(),
                             keyboard=keyboard.get_keyboard(),
                             message='Пример клавиатуры'
                         )
-                        bot.menu_bot(user_id)
+                        self.menu_bot(user_id)
                         # msg_text, user_id = bot.pats
 
-                        msg_text, user_id = bot.pattern_bot()
+                        msg_text, user_id = self.pattern_bot()
                         if msg_text == 'поиск':
-                            keyboard2 = VkKeyboard(one_time=True)
-                            keyboard2.get_empty_keyboard()
-                            keyboard2.add_button('М Ж',
-                                                 VkKeyboardColor.SECONDARY)
-                            keyboard2.add_button('девушка',
-                                                 VkKeyboardColor.POSITIVE)
-                            keyboard2.add_button('парень',
-                                                 VkKeyboardColor.NEGATIVE)
-
-                            vk.messages.send(
-                                peer_id=user_id,
-                                random_id=get_random_id(),
-                                keyboard=keyboard2.get_keyboard(),
-                                message='введите пол кого хотите найти'
-                            )
+                            self.keyboard2(user_id, vk)
 
                             write_msg(user_id,
                                       'введите пол кого хотите найти')
-                            msg_text, user_id = bot.pattern_bot()
-                            sex = msg_text
-                            if msg_text == 'М Ж':
-                                sex = 0
-                                search_uss.append(sex)
-                            if msg_text.lower() == 'девушка':
-                                sex = 1
-                                search_uss.append(sex)
-                            if msg_text.lower() == 'парень':
-                                sex = 2
-                                search_uss.append(sex)
-                            write_msg(user_id,
-                                      'введите возраст '
-                                      'от - (минимальный возраст 18)')
-
-                            msg_text, user_id = bot.pattern_bot()
-
-                            age_from = msg_text
-
-                            if int(age_from) < 18:
-                                write_msg(user_id, post1)
-                                age_from = 18
-                                search_uss.append(age_from)
-                            else:
-                                search_uss.append(age_from)
-
-                            write_msg(user_id, 'введите возраст до - ')
-
-                            msg_text, user_id = bot.pattern_bot()
-                            age_to = msg_text
-                            search_uss.append(age_to)
-
-                            write_msg(user_id, 'введите город - .')
-
-                            msg_text, user_id = bot.pattern_bot()
-                            hometown = msg_text
-                            search_uss.append(hometown)
-
-                            # Ищем анкеты
-                            user = Users(*search_uss)
-                            result = user.search_users()
-                            search_uss.clear()
-                            # json_create(result)
-                            current_user_id = check_db_master(
-                                user_id, session=session)
-
+                            current_user_id, hometown, \
+                            result, user_id = self.pattern_search(current_user_id,
+                                                                  search_uss, session)
                             # Производим отбор анкет
                             for i in range(len(result)):
                                 # print(result[i]['id'],
@@ -290,27 +339,7 @@ class Bot:
                                         is not None or \
                                         blocked_user is not None:
                                     continue
-                                sorted_user_photo = photo.sort_likes(
-                                    user_photo)
-                                # Выводим отсортированные
-                                # данные
-                                # по анкетам
-                                write_msg(
-                                    user_id, f'\n{result[i]["first_name"]}'
-                                             f'{result[i]["last_name"]} '
-                                             f'{result[i]["profile"]}', )
-                                try:
-                                    write_msg(user_id, 'фото:',
-                                              attachment=','.join
-                                              ([sorted_user_photo[-1][1],
-                                                sorted_user_photo[-2][1],
-                                                sorted_user_photo[-3][1]]))
-                                    print(sorted_user_photo)
-                                except IndexError:
-                                    for photo in range(len(sorted_user_photo)):
-                                        write_msg(user_id, 'фото:',
-                                                  attachment=sorted_user_photo[
-                                                      photo][1])
+                                self.method_photo(i, photo, result, user_id, user_photo)
 
                                 # Ждем пользовательский ввод
 
@@ -318,34 +347,18 @@ class Bot:
                                                    '2 - Заблокировать, '
                                                    '0 - Далее, \n'
                                                    'q - выход из поиска')
-                                keyboard3 = VkKeyboard(one_time=True)
-                                keyboard3.get_empty_keyboard()
-                                keyboard3.add_button('добавить в избранное',
-                                                     VkKeyboardColor.SECONDARY)
-                                keyboard3.add_button('заблокировать',
-                                                     VkKeyboardColor.POSITIVE)
-                                keyboard3.add_line()
-                                keyboard3.add_button('далее',
-                                                     VkKeyboardColor.NEGATIVE)
-                                keyboard3.add_button('выход',
-                                                     VkKeyboardColor.NEGATIVE)
-                                vk.messages.send(
-                                    peer_id=user_id,
-                                    random_id=get_random_id(),
-                                    keyboard=keyboard3.get_keyboard(),
-                                    message='введите пол кого хотите найти'
-                                )
-                                msg_text, user_id = bot.pattern_bot()
+                                self.keyboard3(user_id, vk)
+                                msg_text, user_id = self.pattern_bot()
 
                                 if msg_text == 'далее':
                                     # Проверка на последнюю запись
                                     if i >= len(result) - 1:
-                                        bot.show_info(user_id)
+                                        self.show_info(user_id)
                                 # Добавляем пользователя в избранное
                                 elif msg_text == 'добавить в избранное':
                                     # Проверка на последнюю запись
                                     if i >= len(result) - 1:
-                                        bot.show_info(user_id)
+                                        self.show_info(user_id)
                                         break
                                     # Пробуем добавить анкету в БД
                                     try:
@@ -365,7 +378,7 @@ class Bot:
                                 elif msg_text == 'заблокировать':
                                     # Проверка на последнюю запись
                                     if i >= len(result) - 1:
-                                        bot.show_info(user_id)
+                                        self.show_info(user_id)
                                     # Блокируем
                                     add_to_black_list(user_id,
                                                       result[i]['id'],
@@ -381,8 +394,14 @@ class Bot:
 
                         # Переходим в избранное
                         elif msg_text == 'избранное':
-                            bot.go_to_favorites(user_id)
+                            self.go_to_favorites(user_id)
 
                         # Переходим в черный список
                         elif msg_text == 'спам':
-                            bot.go_to_blacklist(user_id)
+                            self.go_to_blacklist(user_id)
+
+
+
+
+
+
