@@ -1,8 +1,10 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll
-from VK_token import VK_api_V, user_token, group_token
+from VK_token import VK_api_V, user_token, group_token, group_id
 from vk_api.exceptions import ApiError
 from logers.logers import log_to_console
+from vk_api.bot_longpoll import VkBotLongPoll
+from datetime import date
 
 
 class Api_connect:
@@ -15,11 +17,11 @@ class Api_connect:
         self.longpoll = VkLongPoll(vk=self.vk)
 
     def user_info(self, user_id):
-        user_search_dict = []
+        user_search_dict = {}
         vk_ = vk_api.VkApi(token=user_token)
         user = vk_.method('users.get', {'user_id': user_id, 'fields': 'relation, sex, hometown, bdate'})
         user = user[0]
-        user_search_dict.append(user['hometown'] if user['hometown'] else user_search_dict.append(None))
+        # user_search_dict.fromkeys(['hometown']) = user['hometown']
         # user_search_dict['sex'] = user['sex']
         # user_search_dict['status'] = '1'
 
@@ -148,13 +150,34 @@ class Cities:
             for x in i:
                 print('Москва' in x['title'])
 
+class Client:
+    def __init__(self, user_id):
+        self.vk_session = vk_api.VkApi(token=group_token)
+        self.longpoll = VkBotLongPoll(self.vk_session, group_id)
+        self.session_api = self.vk_session.get_api()
+        self.members_list = self.vk_session.method(
+            'messages.getConversationMembers', {
+                'peer_id': user_id, 'fields': ['city']})
+        self.user_id = user_id
+        self.city = self.members_list['profiles'][0]['city']['title']
+        self.members_list = self.vk_session.method(
+            'messages.getConversationMembers', {
+                'peer_id': user_id, 'fields': ['bdate']})
+        self.age = self.members_list['profiles'][0]['bdate']
+        birth_date = self.members_list['profiles'][0]['bdate']
+        today = date.today()
+        # self.age = today.year - int(birth_date)
 
+        print(birth_date)
+
+if __name__ == "__main__":
+    slient = Client(683858243)
 
 
     # return sorted(response['items'])
 
-api = Api_connect()
-api.user_info(686541705)
+# api = Api_connect()
+# api.user_info(686541705)
 # sity = Cities()
 
 # user = Users(1, 18, 20, 'москва')
