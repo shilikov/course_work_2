@@ -1,7 +1,8 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
 from vk_api.keyboard import VkKeyboard, VkKeyboardColor
-from data_search.data_search import Users, Photo
+from data_search.data_search import Users, Photo, Client
 from data_base.db import engine, Session
 from data_base.db_func import write_msg, \
     register_user, add_user, \
@@ -10,12 +11,14 @@ from data_base.db_func import write_msg, \
     check_db_favorites, check_db_master, \
     delete_db_blacklist, delete_db_favorites, \
     check_db_searcht, add_to_searcht
-from VK_token import group_token
+from VK_token import group_token, group_id
 from logers.logers import log
 from pprint import pprint
 from vk_api.utils import get_random_id
 import requests
 from bots.bot_message import post1
+from datetime import date
+
 
 
 class Bot:
@@ -36,7 +39,9 @@ class Bot:
             if event.type == VkEventType.MESSAGE_NEW \
                     and event.to_me and event.text:
                 print('id{}: "{}"'.format(event.user_id, event.text), end=' ')
-                pprint(log(f'[пользователь с ID - {event.user_id} '
+                pprint(log(f'[пользователь - '
+                           f'{" ".join(self.fool_us_name(event.user_id)).split(",")}'
+                           f' dID - {event.user_id} '
                            f'\ndb object at {event} '
                            f'\nподключен к сессии - {session}]'))
                 return event.text, event.user_id
@@ -285,12 +290,79 @@ class Bot:
         user = self.vk.method('users.get', {'user_id': user_id, 'fields': 'relation, sex, city, bdate'})
         return user
 
+    def user_data(self, user_id):
+        self.user_id = user_id
+        self.vk_session = vk_api.VkApi(token=group_token)
+        self.longpoll = VkBotLongPoll(self.vk_session, group_id)
+        self.session_api = self.vk_session.get_api()
+        self.members_list = self.vk_session.method(
+            'messages.getConversationMembers', {
+                'peer_id': self.user_id, 'fields': ['city']})
+
+        self.city = self.members_list['profiles'][0]['city']['title']
+        self.members_list = self.vk_session.method(
+            'messages.getConversationMembers', {
+                'peer_id': self.user_id, 'fields': ['bdate']})
+        birth_date = self.members_list['profiles'][0]['bdate'].split('.')
+        today = date.today()
+        # self.age = today.year - int(birth_date[2])
+        self.name = self.members_list['profiles'][0]['first_name']
+        # print(self.name)
+
+        return self.name
+
+    def fool_us_name(self, user_id):
+        self.user_id = user_id
+        self.vk_session = vk_api.VkApi(token=group_token)
+        self.longpoll = VkBotLongPoll(self.vk_session, group_id)
+        self.session_api = self.vk_session.get_api()
+        self.members_list = self.vk_session.method(
+            'messages.getConversationMembers', {
+                'peer_id': self.user_id, 'fields': ['city']})
+        self.first_name = self.members_list['profiles'][0]['first_name']
+        self.last_name = self.members_list['profiles'][0]['last_name']
+
+        return self.last_name, self.first_name
+
+
+
+    def method_auto_search(self, search_uss):
+        msg_text, user_id = self.pattern_bot()
+        sex = msg_text
+        if msg_text == 'М Ж':
+            sex = 0
+            search_uss.append(sex)
+        if msg_text.lower() == 'девушка':
+            sex = 1
+            search_uss.append(sex)
+        if msg_text.lower() == 'парень':
+            sex = 2
+            search_uss.append(sex)
+        client = Client(user_id)
+        age_from = client.age - 3
+        if age_from < 18:
+            age_from = 18
+            search_uss.append(age_from)
+        age_at = client.age + 3
+        search_uss.append(age_at)
+        search_uss.append(client.age)
+        hometown = client.city
+        search_uss.append(hometown)
+        user = Users(*search_uss)
+        result = user.search_users()
+        search_uss.clear()
+
+
 
 
     def run(self):
+
         session, user_id = self.run_bot()
-        user = self.user_info(user_id)
-        user = user[0]
+        client = Client(user_id)
+        # user = self.user_info(user_id)
+        # user = user[0]
+        # client.age
+
         while True:
             self.hi(user_id)
             msg_text, user_id = self.pattern_bot()
@@ -318,15 +390,12 @@ class Bot:
 
                         msg_text, user_id = self.pattern_bot()
                         if msg_text == 'поиск':
-                            write_msg(user_id,
-                                      'для автоматического поиска нажмите да')
-                            if msg_text == 'да':
-                                search_uss.append(user[0])
 
                             self.keyboard2(user_id, vk)
 
                             write_msg(user_id,
-                                      'введите пол кого хотите найти')
+                                      f'Приветствую Вас {self.user_data(user_id)} '
+                                      f'введите пол кого хотите найти')
                             current_user_id, hometown, \
                             result, user_id = self.pattern_search(current_user_id,
                                                                   search_uss, session)
@@ -408,8 +477,6 @@ class Bot:
                         # Переходим в черный список
                         elif msg_text == 'спам':
                             self.go_to_blacklist(user_id)
-
-
 
 
 

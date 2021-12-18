@@ -152,24 +152,34 @@ class Cities:
 
 class Client:
     def __init__(self, user_id):
+        self.user_id = user_id
+    def user_data(self, user_id):
+        self.user_id = user_id
         self.vk_session = vk_api.VkApi(token=group_token)
         self.longpoll = VkBotLongPoll(self.vk_session, group_id)
         self.session_api = self.vk_session.get_api()
         self.members_list = self.vk_session.method(
             'messages.getConversationMembers', {
-                'peer_id': user_id, 'fields': ['city']})
-        self.user_id = user_id
+                'peer_id': self.user_id, 'fields': ['city']})
+
         self.city = self.members_list['profiles'][0]['city']['title']
         self.members_list = self.vk_session.method(
             'messages.getConversationMembers', {
-                'peer_id': user_id, 'fields': ['bdate']})
+                'peer_id': self.user_id, 'fields': ['bdate']})
         birth_date = self.members_list['profiles'][0]['bdate'].split('.')
         today = date.today()
         self.age = today.year - int(birth_date[2])
-        print(self.age, self.city)
+        self.name = self.members_list['profiles'][0]['first_name']
+        # print(self.name)
 
-if __name__ == "__main__":
-    slient = Client(683858243)
+        return self.city, self.age, self.name
+
+
+
+
+# if __name__ == "__main__":
+    # slient = Client(683858243)
+    # print(slient.user_data())
 
 
     # return sorted(response['items'])
