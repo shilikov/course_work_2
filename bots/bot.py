@@ -16,7 +16,9 @@ from logers.logers import log
 from pprint import pprint
 from vk_api.utils import get_random_id
 import requests
-from bots.bot_message import post1
+from bots.bot_message import post1, post2, post3, hello_post, \
+    bot_menu, info_post, post4, post5, start_post, post6,\
+    ation1_post, ation2_post
 
 
 class Bot:
@@ -45,30 +47,25 @@ class Bot:
                            f'\nподключен к сессии - {session}]'))
                 return event.text, event.user_id
 
-    def hi(self, id_num):
-        self.id_num = id_num
-        write_msg(self.id_num,
-                  "Вас приветствует бот - vkinder\n"
-                  "для продолжения введите - start")
+    @staticmethod
+    def hi(user_id):
+        write_msg(user_id,
+                  hello_post)
 
-    def menu_bot(self, id_num):
-        self.id_num = id_num
-        write_msg(self.id_num,
-                  "\nДля поиска - введите - поиск \n"
-                  "Перейти в избранное нажмите - избранное\n"
-                  "Перейти в черный список - спам")
+    @staticmethod
+    def menu_bot(user_id):
+        write_msg(user_id,
+                  bot_menu)
 
-    def show_info(self, user_id):
+    @staticmethod
+    def show_info(user_id):
+        write_msg(user_id, info_post)
 
-        write_msg(user_id, 'Вы посмотрели все анкеты.'
-                           'Перейти в избранное - избранное'
-                           'Перейти в черный список - спам'
-                           'Меню бота - start')
-
-    def reg_new_user(self, id_num):
+    @staticmethod
+    def reg_new_user(id_num):
         write_msg(id_num, 'Вы прошли регистрацию.')
         write_msg(id_num,
-                  "start - для активации бота\n")
+                  start_post)
         register_user(id_num)
 
     def go_to_favorites(self, ids):
@@ -78,21 +75,19 @@ class Bot:
             write_msg(ids, f'{users.first_name}, '
                            f'{users.second_name}, '
                            f'{users.link}')
-            write_msg(ids, '1 - Удалить из избранного, 0 - Далее \nq - Выход')
+            write_msg(ids, ation1_post)
             msg_texts, user_ids = self.pattern_bot()
             if msg_texts == '0':
                 if nums >= len(alls_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post6)
             # Удаляем запись из бд - избранное
             elif msg_texts == '1':
                 delete_db_favorites(users.vk_id)
                 write_msg(user_ids, 'Анкета успешно удалена.')
                 if nums >= len(alls_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post6)
             elif msg_texts.lower() == 'q':
-                write_msg(ids, 'Vkinder - для активации бота.')
+                write_msg(ids, start_post)
                 break
 
     def go_to_blacklist(self, ids):
@@ -109,18 +104,16 @@ class Bot:
             msg_texts, user_ids = self.pattern_bot()
             if msg_texts == '0':
                 if num >= len(all_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post6)
             # Удаляем запись из бд - черный список
             elif msg_texts == '1':
                 print(user.id)
                 delete_db_blacklist(user.vk_id)
                 write_msg(user_ids, 'Анкета успешно удалена')
                 if num >= len(all_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post6)
             elif msg_texts.lower() == 'q':
-                write_msg(ids, 'start - для активации бота.')
+                write_msg(ids, start_post)
                 break
 
     # проверяем посковый запрос пользователя
@@ -131,23 +124,20 @@ class Bot:
             write_msg(ids, f'{user.first_name}, '
                            f'{user.second_name}, '
                            f'{user.link}')
-            write_msg(ids, '1 - Удалить из черного списка,'
-                           ' 0 - Далее \nq - Выход')
-            msg_texts, user_ids = Bot.pattern_bot()
+            write_msg(ids, ation2_post)
+            msg_texts, user_ids = self.pattern_bot()
             if msg_texts == '0':
                 if num >= len(all_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post6)
             # Удаляем запись из бд - черный список
             elif msg_texts == '1':
                 print(user.id)
                 delete_db_blacklist(user.vk_id)
                 write_msg(user_ids, 'Анкета успешно удалена')
                 if num >= len(all_users) - 1:
-                    write_msg(user_ids, 'Это была последняя анкета.\n'
-                                        'start - вернуться в меню\n')
+                    write_msg(user_ids, post5)
             elif msg_texts.lower() == 'q':
-                write_msg(ids, 'Vkinder - для активации бота.')
+                write_msg(ids, start_post)
                 break
 
     def method_photo(self, i, photo, result, user_id, user_photo):
@@ -264,15 +254,10 @@ class Bot:
         current_user_id = check_db_master(user_id, session)
         if not current_user_id:
             msg_text, user_id = self.pattern_bot()
-            write_msg(user_id, 'вы не зарегистрированы, '
-                               'пройдите регистрацию')
+            write_msg(user_id, post4)
 
             self.reg_new_user(user_id)
             sg_text, user_id = self.pattern_bot()
-
-            # Регистрируем пользователя в БД
-            # if msg_text.lower() == 'да':
-            #     bot.reg_new_user(user_id)
         return current_user_id, user_id
 
     def run_bot(self):
@@ -352,138 +337,108 @@ class Bot:
         user = Users(*search_uss)
         result = user.search_users()
         search_uss.clear()
+        return result
 
     def run(self):
-
         session, user_id = self.run_bot()
-        # client = Client(user_id)
-        # user = self.user_info(user_id)
-        # user = user[0]
-        # client.age
-
         while True:
             self.hi(user_id)
             msg_text, user_id = self.pattern_bot()
             if msg_text == "start":
-                current_user_id, user_id = self.method_reg_user(
-                    session,
-                    user_id
+                current_user_id, user_id = self.method_reg_user(session,
+                                                                user_id)
+                search_uss = []
+                write_msg(user_id, 'Выберите действие')
+                vk_session = vk_api.VkApi(token=group_token)
+                vk = vk_session.get_api()
+                keyboard = self.keyboard1()
+                vk.messages.send(
+                    peer_id=user_id,
+                    random_id=get_random_id(),
+                    keyboard=keyboard.get_keyboard(),
+                    message='Пример клавиатуры'
                 )
-                if current_user_id:
-                    search_uss = []
-                    # msg_text, user_id = bot.loop_bot()
-                    write_msg(user_id, 'Выберите действие')
-                    vk_session = vk_api.VkApi(token=group_token)
-                    vk = vk_session.get_api()
-                    keyboard = self.keyboard1()
-                    for event in self.longpoll.listen():
-                        if event.type == VkEventType.MESSAGE_NEW:
-                            if event.to_me:
-                                ...
-                        vk.messages.send(
-                            peer_id=user_id,
-                            random_id=get_random_id(),
-                            keyboard=keyboard.get_keyboard(),
-                            message='Пример клавиатуры'
-                        )
-                        self.menu_bot(user_id)
-                        # msg_text, user_id = bot.pats
-
+                self.menu_bot(user_id)
+                msg_text, user_id = self.pattern_bot()
+                if msg_text == 'поиск':
+                    self.keyboard2(user_id, vk)
+                    write_msg(user_id,
+                              f'Приветствую Вас '
+                              f'{self.user_data(user_id)} '
+                              f'введите пол кого хотите найти')
+                    current_user_id, hometown, result, user_id \
+                        = self.pattern_search(current_user_id,
+                                              search_uss, session)
+                    # Производим отбор анкет
+                    for i in range(len(result)):
+                        dating_user, blocked_user = check_db_user(
+                            result[i]['id'])
+                        # Получаем фото и сортируем по лайкам
+                        photo = Photo(result[i]['id'])
+                        user_photo = photo.get_photo()
+                        if user_photo == 'нет доступа к фото' or dating_user \
+                                is not None or blocked_user is not None:
+                            continue
+                        self.method_photo(i, photo, result,
+                                          user_id, user_photo)
+                        # Ждем пользовательский ввод
+                        write_msg(user_id, post3)
+                        self.keyboard3(user_id, vk)
                         msg_text, user_id = self.pattern_bot()
-                        if msg_text == 'поиск':
 
-                            self.keyboard2(user_id, vk)
+                        if msg_text == 'далее':
+                            # Проверка на последнюю запись
+                            if i >= len(result) - 1:
+                                self.show_info(user_id)
+                        # Добавляем пользователя в избранное
+                        elif msg_text == 'добавить в избранное':
+                            # Проверка на последнюю запись
+                            if i >= len(result) - 1:
+                                self.show_info(user_id)
+                                break
+                            # Пробуем добавить анкету в БД
+                            try:
+                                self.method_favorits(current_user_id,
+                                                     hometown, i,
+                                                     result, user_id)
+                            except AttributeError:
+                                write_msg(user_id,
+                                          post2)
+                                break
+                        # Добавляем пользователя в черный список
+                        elif msg_text == 'заблокировать':
+                            # Проверка на последнюю запись
+                            if i >= len(result) - 1:
+                                self.show_info(user_id)
+                            # Блокируем
+                            self.method_spam(current_user_id,
+                                             hometown, i,
+                                             result, user_id)
+                        elif msg_text.lower() == 'выход':
+                            write_msg(user_id, start_post)
+                            break
+                # Переходим в избранное
+                elif msg_text == 'избранное':
+                    self.go_to_favorites(user_id)
 
-                            write_msg(user_id,
-                                      f'Приветствую Вас '
-                                      f'{self.user_data(user_id)} '
-                                      f'введите пол кого хотите найти')
-                            current_user_id, hometown, result, user_id \
-                                = self.pattern_search(current_user_id,
-                                                      search_uss,
-                                                      session)
+                # Переходим в черный список
+                elif msg_text == 'спам':
+                    self.go_to_blacklist(user_id)
 
-                            # Производим отбор анкет
-                            for i in range(len(result)):
-                                # print(result[i]['id'],
-                                # result[i]['last_name'],
-                                #       result[i]['first_name'],
-                                #       hometown,
-                                #       result[i]['profile'])
-                                dating_user, blocked_user = check_db_user(
-                                    result[i]['id'])
-                                # Получаем фото и сортируем по лайкам
-                                photo = Photo(result[i]['id'])
-                                user_photo = photo.get_photo()
-                                if user_photo == 'нет ' \
-                                                 'доступа ' \
-                                                 'к фото' or dating_user \
-                                        is not None or \
-                                        blocked_user is not None:
-                                    continue
-                                self.method_photo(
-                                    i,
-                                    photo,
-                                    result,
-                                    user_id,
-                                    user_photo
-                                )
+    def method_favorits(self, current_user_id, hometown, i, result, user_id):
+        add_user(user_id,
+                 result[i]['id'],
+                 result[i]['last_name'],
+                 result[i]['first_name'],
+                 hometown,
+                 result[i]['profile'],
+                 current_user_id.id)
 
-                                # Ждем пользовательский ввод
-
-                                write_msg(user_id, '1 - Добавить, '
-                                                   '2 - Заблокировать, '
-                                                   '0 - Далее, \n'
-                                                   'q - выход из поиска')
-                                self.keyboard3(user_id, vk)
-                                msg_text, user_id = self.pattern_bot()
-
-                                if msg_text == 'далее':
-                                    # Проверка на последнюю запись
-                                    if i >= len(result) - 1:
-                                        self.show_info(user_id)
-                                # Добавляем пользователя в избранное
-                                elif msg_text == 'добавить в избранное':
-                                    # Проверка на последнюю запись
-                                    if i >= len(result) - 1:
-                                        self.show_info(user_id)
-                                        break
-                                    # Пробуем добавить анкету в БД
-                                    try:
-                                        add_user(user_id, result[i]['id'],
-                                                 result[i]['last_name'],
-                                                 result[i]['first_name'],
-                                                 hometown,
-                                                 result[i]['profile'],
-                                                 current_user_id.id)
-                                    except AttributeError:
-                                        write_msg(user_id,
-                                                  'Вы не зарегистрировались!'
-                                                  '\n Введите start '
-                                                  'для перезагрузки бота')
-                                        break
-                                # Добавляем пользователя в черный список
-                                elif msg_text == 'заблокировать':
-                                    # Проверка на последнюю запись
-                                    if i >= len(result) - 1:
-                                        self.show_info(user_id)
-                                    # Блокируем
-                                    add_to_black_list(user_id,
-                                                      result[i]['id'],
-                                                      result[i]['last_name'],
-                                                      result[i]['first_name'],
-                                                      hometown,
-                                                      result[i]['profile'],
-                                                      current_user_id.id)
-                                elif msg_text.lower() == 'выход':
-                                    write_msg(user_id, 'Введите start '
-                                                       'для активации бота')
-                                    break
-
-                        # Переходим в избранное
-                        elif msg_text == 'избранное':
-                            self.go_to_favorites(user_id)
-
-                        # Переходим в черный список
-                        elif msg_text == 'спам':
-                            self.go_to_blacklist(user_id)
+    def method_spam(self, current_user_id, hometown, i, result, user_id):
+        add_to_black_list(user_id,
+                          result[i]['id'],
+                          result[i]['last_name'],
+                          result[i]['first_name'],
+                          hometown,
+                          result[i]['profile'],
+                          current_user_id.id)

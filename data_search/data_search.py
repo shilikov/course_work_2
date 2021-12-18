@@ -5,8 +5,8 @@ from vk_api.exceptions import ApiError
 from logers.logers import log_to_console
 from vk_api.bot_longpoll import VkBotLongPoll
 from datetime import date
-import collections
-from vk_api.audio import VkAudio
+# import collections
+# from vk_api.audio import VkAudio
 
 
 class Api_connect:
@@ -133,6 +133,7 @@ class Cities:
             'country_id': 1,
             'need_all': 0,
             'count': 100})
+
         print(response)
         res.append(response['items'])
 
@@ -165,69 +166,69 @@ class Client:
 
         return self.city, self.age, self.name
 
-    def music(self):
-        """ Пример составления топа исполнителей для профиля вк """
+    # def music(self):
+    #     """ Пример составления топа исполнителей для профиля вк """
+    #
+    #     try:
+    #         self.vk_session.auth()
+    #     except vk_api.AuthError as error_msg:
+    #         print(error_msg)
+    #         return
+    #
+    #     vkaudio = VkAudio(self.vk_session)
+    #
+    #     artists = collections.Counter(
+    #         track['artist'] for track in vkaudio.get_iter()
+    #     )
+    #
+    #     # Составляем рейтинг первых 15
+    #     print('Top 15:')
+    #     for artist, tracks in artists.most_common(15):
+    #         print('{} - {} tracks'.format(artist, tracks))
+    #
+    #     # Ищем треки самого популярного
+    #     most_common_artist = artists.most_common(1)[0][0]
+    #
+    #     print('\nSearching for {}:'.format(most_common_artist))
+    #
+    #     tracks = vkaudio.search(q=most_common_artist, count=10)
+    #
+    #     for n, track in enumerate(tracks, 1):
+    #         print('{}. {} {}'.format(n, track['title'], track['url']))
+    #
+    # def albumi(self):
+    #     """ Пример отображения 5 последних альбомов пользователя """
+    #     try:
+    #         self.vk_session.auth()
+    #     except vk_api.AuthError as error_msg:
+    #         print(error_msg)
+    #         return
+    #
+    #     vkaudio = VkAudio(self.vk_session)
+    #
+    #     albums = vkaudio.get_albums(194957739)
+    #
+    #     print('\nLast 5:')
+    #     for album in albums[:5]:
+    #         print(album['title'])
+    #
+    #     # Ищем треки последнего альбома
+    #     print('\nSearch for', albums[0]['title'])
+    #     tracks = vkaudio.get(album_id=albums[0]['id'])
+    #
+    #     for n, track in enumerate(tracks, 1):
+    #         print('{}. {} {}'.format(n, track['title'], track['url']))
 
-        try:
-            self.vk_session.auth()
-        except vk_api.AuthError as error_msg:
-            print(error_msg)
-            return
 
-        vkaudio = VkAudio(self.vk_session)
-
-        artists = collections.Counter(
-            track['artist'] for track in vkaudio.get_iter()
-        )
-
-        # Составляем рейтинг первых 15
-        print('Top 15:')
-        for artist, tracks in artists.most_common(15):
-            print('{} - {} tracks'.format(artist, tracks))
-
-        # Ищем треки самого популярного
-        most_common_artist = artists.most_common(1)[0][0]
-
-        print('\nSearching for {}:'.format(most_common_artist))
-
-        tracks = vkaudio.search(q=most_common_artist, count=10)
-
-        for n, track in enumerate(tracks, 1):
-            print('{}. {} {}'.format(n, track['title'], track['url']))
-
-    def albumi(self):
-        """ Пример отображения 5 последних альбомов пользователя """
-        try:
-            self.vk_session.auth()
-        except vk_api.AuthError as error_msg:
-            print(error_msg)
-            return
-
-        vkaudio = VkAudio(self.vk_session)
-
-        albums = vkaudio.get_albums(194957739)
-
-        print('\nLast 5:')
-        for album in albums[:5]:
-            print(album['title'])
-
-        # Ищем треки последнего альбома
-        print('\nSearch for', albums[0]['title'])
-        tracks = vkaudio.get(album_id=albums[0]['id'])
-
-        for n, track in enumerate(tracks, 1):
-            print('{}. {} {}'.format(n, track['title'], track['url']))
-
-
-if __name__ == "__main__":
-
-    slient = Client(683858243)
-    print(slient.albumi())
-    # return sorted(response['items'])
-
-# api = Api_connect()
-# api.user_info(686541705)
-# sity = Cities()
+# if __name__ == "__main__":
+#
+#     # slient = Client(683858243)
+#     # print(slient.albumi())
+#     # return sorted(response['items'])
+#
+#     api = Api_connect()
+#     # api.user_info(686541705)
+#     sity = Cities()
 
 # user = Users(1, 18, 20, 'москва')
 # user.search_users()
