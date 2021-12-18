@@ -163,12 +163,10 @@ class Client:
         self.members_list = self.vk_session.method(
             'messages.getConversationMembers', {
                 'peer_id': user_id, 'fields': ['bdate']})
-        self.age = self.members_list['profiles'][0]['bdate']
-        birth_date = self.members_list['profiles'][0]['bdate']
+        birth_date = self.members_list['profiles'][0]['bdate'].split('.')
         today = date.today()
-        # self.age = today.year - int(birth_date)
-
-        print(birth_date)
+        self.age = today.year - int(birth_date[2])
+        print(self.age, self.city)
 
 if __name__ == "__main__":
     slient = Client(683858243)
