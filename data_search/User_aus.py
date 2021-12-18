@@ -1,16 +1,17 @@
 import vk_api
 from logers.logers import log
 
+
 class User:
     def __init__(self, input_id):
         self.session = self._auth()
         self.input_id = input_id
 
     def _auth(self):
-        session = vk_api.VkApi(vk_login,
-                               vk_password,
+        session = vk_api.VkApi('vk_login',
+                               'vk_password',
                                app_id=204586087,
-                               api_version=api_version,
+                               api_version='api_version',
                                auth_handler=self.auth_handler)
 
         try:

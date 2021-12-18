@@ -5,12 +5,11 @@ from vk_api.exceptions import ApiError
 from logers.logers import log_to_console
 from vk_api.bot_longpoll import VkBotLongPoll
 from datetime import date
+import collections
+from vk_api.audio import VkAudio
 
 
 class Api_connect:
-
-
-
     def __init__(self):
         self.token = group_token
         self.vk = vk_api.VkApi(token=self.token)
@@ -19,27 +18,18 @@ class Api_connect:
     def user_info(self, user_id):
         user_search_dict = {}
         vk_ = vk_api.VkApi(token=user_token)
-        user = vk_.method('users.get', {'user_id': user_id, 'fields': 'relation, sex, hometown, bdate'})
+        user = vk_.method('users.get', {'user_id': user_id,
+                                        'fields': ['relation, '
+                                                   'sex, '
+                                                   'hometown, '
+                                                   'bdate']})
         user = user[0]
         # user_search_dict.fromkeys(['hometown']) = user['hometown']
         # user_search_dict['sex'] = user['sex']
         # user_search_dict['status'] = '1'
-
-
-
-
-                    # user_search_dict['age_from'] = age_from_to_list[0]
-                    # user_search_dict['age_to'] = age_from_to_list[1]
-
-
-
-
-        print(user)
-
-
-
-
-
+        # user_search_dict['age_from'] = age_from_to_list[0]
+        # user_search_dict['age_to'] = age_from_to_list[1]
+        print(user_search_dict)
 
 
 class Users:
@@ -150,11 +140,12 @@ class Cities:
             for x in i:
                 print('Москва' in x['title'])
 
+
 class Client:
     def __init__(self, user_id):
         self.user_id = user_id
-    def user_data(self, user_id):
-        self.user_id = user_id
+
+    def user_data(self):
         self.vk_session = vk_api.VkApi(token=group_token)
         self.longpoll = VkBotLongPoll(self.vk_session, group_id)
         self.session_api = self.vk_session.get_api()
@@ -174,14 +165,64 @@ class Client:
 
         return self.city, self.age, self.name
 
+    def music(self):
+        """ Пример составления топа исполнителей для профиля вк """
+
+        try:
+            self.vk_session.auth()
+        except vk_api.AuthError as error_msg:
+            print(error_msg)
+            return
+
+        vkaudio = VkAudio(self.vk_session)
+
+        artists = collections.Counter(
+            track['artist'] for track in vkaudio.get_iter()
+        )
+
+        # Составляем рейтинг первых 15
+        print('Top 15:')
+        for artist, tracks in artists.most_common(15):
+            print('{} - {} tracks'.format(artist, tracks))
+
+        # Ищем треки самого популярного
+        most_common_artist = artists.most_common(1)[0][0]
+
+        print('\nSearching for {}:'.format(most_common_artist))
+
+        tracks = vkaudio.search(q=most_common_artist, count=10)
+
+        for n, track in enumerate(tracks, 1):
+            print('{}. {} {}'.format(n, track['title'], track['url']))
+
+    def albumi(self):
+        """ Пример отображения 5 последних альбомов пользователя """
+        try:
+            self.vk_session.auth()
+        except vk_api.AuthError as error_msg:
+            print(error_msg)
+            return
+
+        vkaudio = VkAudio(self.vk_session)
+
+        albums = vkaudio.get_albums(194957739)
+
+        print('\nLast 5:')
+        for album in albums[:5]:
+            print(album['title'])
+
+        # Ищем треки последнего альбома
+        print('\nSearch for', albums[0]['title'])
+        tracks = vkaudio.get(album_id=albums[0]['id'])
+
+        for n, track in enumerate(tracks, 1):
+            print('{}. {} {}'.format(n, track['title'], track['url']))
 
 
+if __name__ == "__main__":
 
-# if __name__ == "__main__":
-    # slient = Client(683858243)
-    # print(slient.user_data())
-
-
+    slient = Client(683858243)
+    print(slient.albumi())
     # return sorted(response['items'])
 
 # api = Api_connect()
