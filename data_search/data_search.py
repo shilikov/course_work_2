@@ -7,10 +7,37 @@ from logers.logers import log_to_console
 
 class Api_connect:
 
+
+
     def __init__(self):
         self.token = group_token
         self.vk = vk_api.VkApi(token=self.token)
         self.longpoll = VkLongPoll(vk=self.vk)
+
+    def user_info(self, user_id):
+        user_search_dict = []
+        vk_ = vk_api.VkApi(token=user_token)
+        user = vk_.method('users.get', {'user_id': user_id, 'fields': 'relation, sex, hometown, bdate'})
+        user = user[0]
+        user_search_dict.append(user['hometown'] if user['hometown'] else user_search_dict.append(None))
+        # user_search_dict['sex'] = user['sex']
+        # user_search_dict['status'] = '1'
+
+
+
+
+                    # user_search_dict['age_from'] = age_from_to_list[0]
+                    # user_search_dict['age_to'] = age_from_to_list[1]
+
+
+
+
+        print(user)
+
+
+
+
+
 
 
 class Users:
@@ -121,9 +148,13 @@ class Cities:
             for x in i:
                 print('Москва' in x['title'])
 
+
+
+
     # return sorted(response['items'])
 
-# Api_connect()
+api = Api_connect()
+api.user_info(686541705)
 # sity = Cities()
 
 # user = Users(1, 18, 20, 'москва')

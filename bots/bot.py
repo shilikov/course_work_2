@@ -75,7 +75,7 @@ class Bot:
                            f'{users.second_name}, '
                            f'{users.link}')
             write_msg(ids, '1 - Удалить из избранного, 0 - Далее \nq - Выход')
-            msg_texts, user_ids = Bot.pattern_bot()
+            msg_texts, user_ids = self.pattern_bot()
             if msg_texts == '0':
                 if nums >= len(alls_users) - 1:
                     write_msg(user_ids, 'Это была последняя анкета.\n'
@@ -102,7 +102,7 @@ class Bot:
             write_msg(ids, '1 - Удалить из черного списка, '
                            '0 - Далее \n'
                            'q - Выход')
-            msg_texts, user_ids = Bot.pattern_bot()
+            msg_texts, user_ids = self.pattern_bot()
             if msg_texts == '0':
                 if num >= len(all_users) - 1:
                     write_msg(user_ids, 'Это была последняя анкета.\n'
@@ -281,12 +281,16 @@ class Bot:
             self.reg_new_user(user_id)
         return session, user_id
 
-
+    def user_info(self, user_id):
+        user = self.vk.method('users.get', {'user_id': user_id, 'fields': 'relation, sex, city, bdate'})
+        return user
 
 
 
     def run(self):
         session, user_id = self.run_bot()
+        user = self.user_info(user_id)
+        user = user[0]
         while True:
             self.hi(user_id)
             msg_text, user_id = self.pattern_bot()
@@ -314,6 +318,11 @@ class Bot:
 
                         msg_text, user_id = self.pattern_bot()
                         if msg_text == 'поиск':
+                            write_msg(user_id,
+                                      'для автоматического поиска нажмите да')
+                            if msg_text == 'да':
+                                search_uss.append(user[0])
+
                             self.keyboard2(user_id, vk)
 
                             write_msg(user_id,
