@@ -11,7 +11,7 @@ from datetime import date
 
 class Api_connect:
     def __init__(self):
-        self.token = group_token
+        self.token = user_token
         self.vk = vk_api.VkApi(token=self.token)
         self.longpoll = VkLongPoll(vk=self.vk)
 
@@ -46,22 +46,22 @@ class Users:
         vk_ = vk_api.VkApi(token=user_token)
         response = vk_.method('users.search',
                               {
-                                'sort': 1,
-                                'count': 20,
-                                'sex': self.sex,
-                                'hometown': self.hometown,
-                                'status': 1,
-                                'age_from': self.age_from,
-                                'age_to': self.age_to,
-                                'online': 1,
-                                'fields': ['interests, '
-                                           'music, '
-                                           'movies, '
-                                           'tv, '
-                                           'books, '
-                                           'games, '
-                                           'sex, '
-                                           'status']})
+                                  'sort': 1,
+                                  'count': 20,
+                                  'sex': self.sex,
+                                  'hometown': self.hometown,
+                                  'status': 1,
+                                  'age_from': self.age_from,
+                                  'age_to': self.age_to,
+                                  'online': 1,
+                                  'fields': ['interests, '
+                                             'music, '
+                                             'movies, '
+                                             'tv, '
+                                             'books, '
+                                             'games, '
+                                             'sex, '
+                                             'status']})
 
         for element in response['items']:
             person = [
@@ -76,7 +76,7 @@ class Users:
         return all_user
 
 
-# @log_to_console
+    # @log_to_console
 class Photo:
     def __init__(self, user_owner_id):
         self.user_owner_id = user_owner_id
@@ -226,13 +226,13 @@ class Client:
 #     # print(slient.albumi())
 #     # return sorted(response['items'])
 #
-#     api = Api_connect()
+#     # api = Api_connect()
 #     # api.user_info(686541705)
-#     sity = Cities()
+#     # sity = Cities()
+#
+#     user = Users(1, 18, 20, 'москва')
+#     user.search_users()
 
-# user = Users(1, 18, 20, 'москва')
-# user.search_users()
-# print(user.search_users())
 
 # photo = Photo(686541705)
 # print(photo.get_photo())
