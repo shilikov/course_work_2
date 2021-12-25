@@ -21,6 +21,8 @@ from datetime import date
 from bots.bot_message import (post1, post2, post3, hello_post,
                               bot_menu, info_post, post4, post5,
                               start_post, post6, ation1_post, ation2_post)
+import threading
+from requests import request
 
 
 # Для работы с вк_апи
@@ -48,7 +50,29 @@ class Bott:
         self.search_hometoun = ''
         self.search_id = ''
 
-    def loop_bot(self):
+    def _response(self, userState, userId):
+        users = []  # список пользователей
+        # если произошло какое-то событие (пришло сообщение)
+        for event in longpoll.listen():
+              # если id пользователя нет в списке:
+            if event.user_id not in users:
+                # то он добавляется в список...
+                users.append(event.user_id)
+                # ...и для него создаётся новый поток
+                thread = threading.Thread(target=self.chat1,
+                                          args=(event.user_id, request))
+                thread.start()
+                 # тот поток, чей id совпадает с id пользователя, который прислал новое сообщение...
+            if event.user_id == userId:
+                  if userState == 1:
+                      self.chat1(event.user_id, request)
+                  elif userState == 2:
+                      self.chat2(event.user_id, request)
+
+
+
+
+            def loop_bot(self):
         for this_event in longpoll.listen():
             if this_event.type == VkEventType.MESSAGE_NEW:
                 if this_event.to_me:
