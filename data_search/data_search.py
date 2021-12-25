@@ -118,6 +118,26 @@ class Photo:
                 result.append(element)
         return sorted(result)
 
+    # def photo_get(owner_id):
+    #     user_photo = []
+    #     vk_= vk_api.VkApi(token=user_token)
+    #     try:
+    #         response = vk_.method('photos.get',
+    #                               {'extended': 1,
+    #                                'owner_id': owner_id,
+    #                                'album_id': 'profile',
+    #                                'photo_sizes': 1,
+    #                                'count': 20
+    #                                })
+    #     except ApiError:
+    #         return f'This profile is private - нет доступа к фото'
+
+
+        for i in response['items']:
+                user_photo.append([i['likes']['count'],
+                                   'photo' + str(i['owner_id']) + '_' + str(i['id'])])
+
+        return sorted(user_photo[:3])
 
 class Music:
     def __init__(self):
