@@ -355,9 +355,9 @@ class Bot:
                 write_msg(user_id, 'Выберите действие')
                 self.menu_bot(user_id)
                 self.send_keyboard(user_id)
-                msg_text, user_id = self.pattern_bot()
+                # msg_text, user_id = self.pattern_bot()
             if msg_text == 'поиск':
-                msg_text, user_id = self.pattern_bot()
+                # msg_text, user_id = self.pattern_bot()
                 if self.user == self.user:
                     self.keyboard2(user_id, self.vk_)
                     write_msg(user_id,
