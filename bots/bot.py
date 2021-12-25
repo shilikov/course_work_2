@@ -23,7 +23,8 @@ from bots.bot_message import (post1, post2, post3, hello_post,
                               start_post, post6, ation1_post, ation2_post)
 import threading
 from requests import request
-
+from threading import Thread
+# from libs import utils
 
 # Для работы с вк_апи
 vk = vk_api.VkApi(token=group_token)
@@ -49,6 +50,81 @@ class Bott:
         self.search_age_to = ''
         self.search_hometoun = ''
         self.search_id = ''
+
+    def main_loop(self):
+        """Main part of script"""
+
+        # Define functions
+        def run_listening():
+            """Runs longpoll_m listening"""
+
+            # Define functions for threads
+            def thread_for_conversation(event_obj_th, command_centre_t):
+                """Run command centre for conversation."""
+                message_object = event_obj_th.object
+                # Call command centre
+                command_centre_t.run_function(message_object)
+
+            def thread_for_user_chat(event_obj_th2, command_centre_t):
+                """Run command centre for user chat."""
+                message_object = event_obj_th2.object
+                # Call command centre
+                command_centre_t.run_function(message_object)
+
+            # Init thread vars
+            thread_Conv = False
+            thread_UChat = False
+
+            for event in longpoll.listen():
+                # Check for Conversation
+                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_chat:
+                    if thread_Conv:
+                        if thread_Conv.isAlive() is False:
+                            # Stop thread when thread work finish.
+                            thread_Conv.join()
+                    # Make Thread
+                    thread_Conv = Thread(target=thread_for_conversation, args=(event, command_centre_m))
+                    # Start thread
+                    thread_Conv.start()
+
+                # Check for message from user.
+                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_user:
+                    if thread_UChat:
+                        if thread_UChat.isAlive() is False:
+                            # Stop thread when thread work finish.
+                            thread_UChat.join()
+                    # Make Thread
+                    thread_UChat = Thread(target=thread_for_user_chat, args=(event, command_centre_m))
+                    # Start thread
+                    thread_UChat.start()
+
+        def check_internet_connection():
+            """Checks internet connection by sending a request to vk.com"""
+            try:
+                request = requests.get(url='https://vk.com/')
+                if request.status_code == 200:
+                    return True
+                else:
+                    return True
+            except requests.exceptions.RequestException:
+                return False
+
+        # Prevent crash bot when the internet goes down
+        while True:
+            try:
+                # Run longpoll_m listening.
+                run_listening()
+            except requests.exceptions.RequestException:
+                while True:
+                    # Check internet connection
+                    internet_status = check_internet_connection()
+                    # If everything is bad, we wait and try to connect again
+                    if internet_status:
+                        break
+                    else:
+                        print('VK_BOT [Longpoll Listening Error!]: Internet does not work!')
+                    # Time to rest!
+                    time.sleep(120)
 
     def _response(self, userState, userId):
 
@@ -89,6 +165,10 @@ class Bott:
 
 
 
+
+
+
+
     def loop_bot(self):
         for this_event in longpoll.listen():
             if this_event.type == VkEventType.MESSAGE_NEW:
@@ -114,6 +194,21 @@ class Bott:
                            f'\ndb object at {event} '
                            f'\nподключен к сессии - {session}]'))
                 return event.text, event.user_id
+            else:
+                if event.type == VkEventType.MESSAGE_NEW \
+                        and event.from_user \
+                        and event.from_me and event.text:
+                    print('id{}: "{}"'.format(event.user_id, event.text), end=' ')
+                    f_name = ' '.join(self.fool_us_name(event.user_id))
+                    self.f_name = f_name.split(",")
+                    pprint(log(f'[пользователь - '
+                               f'{self.f_name}'
+                               f' dID - {event.user_id} '
+                               f'\ndb object at {event} '
+                               f'\nподключен к сессии - {session}]'))
+                    return event.text, event.user_id
+
+
 
 
 
@@ -338,106 +433,110 @@ class Bott:
         return self.last_name, self.first_name
 
     def run(self):
+        userss = []
         session, user_id = self.run_bot()
         self.hi(user_id)
+        userss.append(user_id)
         while True:
-            msg_text, user_id = self.pattern_bot()
-            if msg_text == "start":
-                current_user_id, user_id = self.method_reg_user(session,
-                                                                user_id)
-                # search_uss = []
-                write_msg(user_id, 'Выберите действие')
-                self.menu_bot(user_id)
-                self.send_keyboard(user_id)
-                # msg_text, user_id = self.pattern_bot()
-            if msg_text == 'поиск':
-                # msg_text, user_id = self.pattern_bot()
-                if self.user == self.user:
-                    self.keyboard2(user_id, self.vk_)
-                    write_msg(user_id,
-                              f'Приветствую Вас '
-                              f'{self.user_data(user_id)} '
-                              f'введите пол кого хотите найти')
+            for uss in userss:
+                if user_id == user_id:
+                    msg_text, user_id = self.pattern_bot()
+                    if msg_text == "start":
+                        current_user_id, user_id = self.method_reg_user(session,
+                                                                        user_id)
+                        # search_uss = []
+                        write_msg(user_id, 'Выберите действие')
+                        self.menu_bot(user_id)
+                        self.send_keyboard(user_id)
+                        # msg_text, user_id = self.pattern_bot()
+                    if msg_text == 'поиск':
+                        # msg_text, user_id = self.pattern_bot()
+                        if self.user == self.user:
+                            self.keyboard2(user_id, self.vk_)
+                            write_msg(user_id,
+                                      f'Приветствую Вас '
+                                      f'{self.user_data(user_id)} '
+                                      f'введите пол кого хотите найти')
 
-                    self.get_sex()
-                    print(self.search_sex)
-                    write_msg(user_id,
-                              f'{self.user_data(user_id)}'
-                              f'вы выбрали {msg_text}')
-                    self.get_age_from()
+                            self.get_sex()
+                            print(self.search_sex)
+                            write_msg(user_id,
+                                      f'{self.user_data(user_id)}'
+                                      f'вы выбрали {msg_text}')
+                            self.get_age_from()
 
-                    self.get_age_to()
-                    self.get_hometown()
-                    user = Users(sex=self.search_sex,
-                                 age_from=self.search_age_from,
-                                 age_to=self.search_age_to,
-                                 hometown=self.search_hometoun)
-                    result = user.search_users()
+                            self.get_age_to()
+                            self.get_hometown()
+                            user = Users(sex=self.search_sex,
+                                         age_from=self.search_age_from,
+                                         age_to=self.search_age_to,
+                                         hometown=self.search_hometoun)
+                            result = user.search_users()
 
-                #     # current_user_id, hometown, result, user_id \
-                #     #     = self.pattern_search(current_user_id,
-                #     #                           search_uss, session)
-                    # Производим отбор анкет
-                    for i in range(len(result)):
-                        dating_user, blocked_user = check_db_user(
-                            result[i]['id'])
-                        # Получаем фото и сортируем по лайкам
-                        photo = Photo(result[i]['id'])
-                        user_photo = photo.get_photo()
-                        if user_photo == 'нет доступа к фото' or dating_user \
-                                is not None or blocked_user is not None:
-                            continue
-                        self.method_photo(i, photo, result,
-                                          user_id, user_photo)
-                        # Ждем пользовательский ввод
-                        write_msg(user_id, post3)
-                        self.keyboard3(user_id, self.vk_)
-                        msg_text, user_id = self.pattern_bot()
+                        #     # current_user_id, hometown, result, user_id \
+                        #     #     = self.pattern_search(current_user_id,
+                        #     #                           search_uss, session)
+                            # Производим отбор анкет
+                            for i in range(len(result)):
+                                dating_user, blocked_user = check_db_user(
+                                    result[i]['id'])
+                                # Получаем фото и сортируем по лайкам
+                                photo = Photo(result[i]['id'])
+                                user_photo = photo.get_photo()
+                                if user_photo == 'нет доступа к фото' or dating_user \
+                                        is not None or blocked_user is not None:
+                                    continue
+                                self.method_photo(i, photo, result,
+                                                  user_id, user_photo)
+                                # Ждем пользовательский ввод
+                                write_msg(user_id, post3)
+                                self.keyboard3(user_id, self.vk_)
+                                msg_text, user_id = self.pattern_bot()
 
-                        if msg_text == 'далее':
-                            # Проверка на последнюю запись
-                            if i >= len(result) - 1:
-                                self.show_info(user_id)
-                        # Добавляем пользователя в избранное
-                        elif msg_text == 'добавить в избранное':
-                            # Проверка на последнюю запись
-                            if i >= len(result) - 1:
-                                self.show_info(user_id)
-                                break
-                            # Пробуем добавить анкету в БД
-                            try:
-                                current_user_id, user_id = self.method_reg_user(session,
-                                                                                user_id)
-                                self.method_favorits(current_user_id,
+                                if msg_text == 'далее':
+                                    # Проверка на последнюю запись
+                                    if i >= len(result) - 1:
+                                        self.show_info(user_id)
+                                # Добавляем пользователя в избранное
+                                elif msg_text == 'добавить в избранное':
+                                    # Проверка на последнюю запись
+                                    if i >= len(result) - 1:
+                                        self.show_info(user_id)
+                                        break
+                                    # Пробуем добавить анкету в БД
+                                    try:
+                                        current_user_id, user_id = self.method_reg_user(session,
+                                                                                        user_id)
+                                        self.method_favorits(current_user_id,
+                                                             self.search_hometoun, i,
+                                                             result, user_id)
+                                    except AttributeError:
+                                        write_msg(user_id,
+                                                  post2)
+                                        break
+                                # Добавляем пользователя в черный список
+                                elif msg_text == 'заблокировать':
+                                    # Проверка на последнюю запись
+                                    if i >= len(result) - 1:
+                                        self.show_info(user_id)
+                                    # Блокируем
+                                    current_user_id, user_id = self.method_reg_user(session,
+                                                                                    user_id)
+                                    self.method_spam(current_user_id,
                                                      self.search_hometoun, i,
                                                      result, user_id)
-                            except AttributeError:
-                                write_msg(user_id,
-                                          post2)
-                                break
-                        # Добавляем пользователя в черный список
-                        elif msg_text == 'заблокировать':
-                            # Проверка на последнюю запись
-                            if i >= len(result) - 1:
-                                self.show_info(user_id)
-                            # Блокируем
-                            current_user_id, user_id = self.method_reg_user(session,
-                                                                            user_id)
-                            self.method_spam(current_user_id,
-                                             self.search_hometoun, i,
-                                             result, user_id)
-                        elif msg_text.lower() == 'выход':
-                            write_msg(user_id, start_post)
-                            break
-                else:
-                    self.run()
-            # Переходим в избранное
-            elif msg_text == 'избранное':
-                self.go_to_favorites(user_id)
+                                elif msg_text.lower() == 'выход':
+                                    write_msg(user_id, start_post)
+                                    break
+                        else:
+                            self.run()
+                    # Переходим в избранное
+                    elif msg_text == 'избранное':
+                        self.go_to_favorites(user_id)
 
-            # Переходим в черный список
-            elif msg_text == 'спам':
-                self.go_to_blacklist(user_id)
+                    # Переходим в черный список
+                    elif msg_text == 'спам':
+                        self.go_to_blacklist(user_id)
 
     def send_keyboard(self, user_id):
         vk_session = vk_api.VkApi(token=group_token)
