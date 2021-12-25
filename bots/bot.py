@@ -89,7 +89,7 @@ class Bott:
 
 
 
-            def loop_bot(self):
+    def loop_bot(self):
         for this_event in longpoll.listen():
             if this_event.type == VkEventType.MESSAGE_NEW:
                 if this_event.to_me:
