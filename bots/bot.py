@@ -25,7 +25,8 @@ from bots.bot_message import (post1, post2, post3, hello_post,
                               start_post, post6, ation1_post, ation2_post)
 import threading
 from requests import request
-
+from threading import Thread
+# from libs import utils
 
 # Для работы с вк_апи
 vk = vk_api.VkApi(token=group_token)
@@ -51,6 +52,81 @@ class Bott:
         self.search_age_to = ''
         self.search_hometoun = ''
         self.search_id = ''
+
+    def main_loop(self):
+        """Main part of script"""
+
+        # Define functions
+        def run_listening():
+            """Runs longpoll_m listening"""
+
+            # Define functions for threads
+            def thread_for_conversation(event_obj_th, command_centre_t):
+                """Run command centre for conversation."""
+                message_object = event_obj_th.object
+                # Call command centre
+                command_centre_t.run_function(message_object)
+
+            def thread_for_user_chat(event_obj_th2, command_centre_t):
+                """Run command centre for user chat."""
+                message_object = event_obj_th2.object
+                # Call command centre
+                command_centre_t.run_function(message_object)
+
+            # Init thread vars
+            thread_Conv = False
+            thread_UChat = False
+
+            for event in longpoll.listen():
+                # Check for Conversation
+                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_chat:
+                    if thread_Conv:
+                        if thread_Conv.isAlive() is False:
+                            # Stop thread when thread work finish.
+                            thread_Conv.join()
+                    # Make Thread
+                    thread_Conv = Thread(target=thread_for_conversation, args=(event, command_centre_m))
+                    # Start thread
+                    thread_Conv.start()
+
+                # Check for message from user.
+                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_user:
+                    if thread_UChat:
+                        if thread_UChat.isAlive() is False:
+                            # Stop thread when thread work finish.
+                            thread_UChat.join()
+                    # Make Thread
+                    thread_UChat = Thread(target=thread_for_user_chat, args=(event, command_centre_m))
+                    # Start thread
+                    thread_UChat.start()
+
+        def check_internet_connection():
+            """Checks internet connection by sending a request to vk.com"""
+            try:
+                request = requests.get(url='https://vk.com/')
+                if request.status_code == 200:
+                    return True
+                else:
+                    return True
+            except requests.exceptions.RequestException:
+                return False
+
+        # Prevent crash bot when the internet goes down
+        while True:
+            try:
+                # Run longpoll_m listening.
+                run_listening()
+            except requests.exceptions.RequestException:
+                while True:
+                    # Check internet connection
+                    internet_status = check_internet_connection()
+                    # If everything is bad, we wait and try to connect again
+                    if internet_status:
+                        break
+                    else:
+                        print('VK_BOT [Longpoll Listening Error!]: Internet does not work!')
+                    # Time to rest!
+                    time.sleep(120)
 
     def _response(self, userState, userId):
 
@@ -87,6 +163,10 @@ class Bott:
                       self.chat1(event.user_id, request)
                   elif userState == 2:
                       self.chat2(event.user_id, request)
+
+
+
+
 
 
 
@@ -239,7 +319,7 @@ class Bott:
         elif _msg_text.lower() == 'парень':
             search_sex = 2
         return search_sex
-        
+
     def get_age_from(self):
         msg_text, user_id = self.loop_bot()
         write_msg(user_id,
@@ -377,8 +457,6 @@ class Bott:
         # _session, user_id = self.run_bot()
         while True:
             msg_text, user_id = self.pattern_bot()
-            if msg_text is None:
-                continue
             msg_text = msg_text.strip().lower()
             current_user_id, user_id = self.method_reg_user(user_id)
 
