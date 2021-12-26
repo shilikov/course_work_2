@@ -2,8 +2,7 @@ from collections import defaultdict
 
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
-from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from data_search.data_search import Users, Photo, Client
+from data_search.data_search import Users, Photo
 from data_base.db import engine, Session, User
 
 from data_base.db_func import (write_msg, register_user,
@@ -12,20 +11,19 @@ from data_base.db_func import (write_msg, register_user,
                                check_db_favorites, check_db_master,
                                delete_db_blacklist, delete_db_favorites,
                                check_db_searcht)
-from VK_token import (group_token, group_id,
-                      user_token, VK_api_V)
+from VK_token import (group_token)
 from logers.logers import log
 from pprint import pprint
 import requests
-from datetime import date
-from bots.bot_message import (post1, post2, post3, hello_post,
-                              bot_menu, info_post, post4, post5,
+from bots.bot_message import (post1, post3, hello_post,
+                              bot_menu, info_post, post5,
                               start_post, post6, ation1_post, ation2_post)
-import threading
-from requests import request
-from threading import Thread
+# import threading
+# from requests import request
+# from threading import Thread
 from bot_keybords.keyboard_bot import (keyboard3, keyboard2, send_keyboard)
 from user_data.user_data import Self_user
+
 # from libs import utils
 
 # Для работы с вк_апи
@@ -54,14 +52,6 @@ class Bott:
         self.search_hometoun = ''
         self.search_id = ''
 
-
-    def loop_bot(self):
-        for this_event in longpoll.listen():
-            if this_event.type == VkEventType.MESSAGE_NEW:
-                if this_event.to_me:
-                    message_text = this_event.text
-                    return message_text, this_event.user_id
-
     def pattern_bot(self):
         request_session = requests.Session()
         vk_session = vk_api.VkApi(token=group_token)
@@ -73,17 +63,16 @@ class Bott:
                     and event.to_me and event.text:
                 print('id{}: "{}"'.format(event.user_id, event.text), end=' ')
                 self._user = Self_user()
-                self.f_name = f'{self._user.user_lastname(event.user_id)} ' \
-                              f'{self._user.user_first_name(event.user_id)}'
+                f_name = f'{self._user.user_lastname(event.user_id)} ' \
+                         f'{self._user.user_first_name(event.user_id)}'
                 pprint(log(f'[пользователь - '
-                           f'{self.f_name}'
+                           f'{f_name}'
                            f' dID - {event.user_id} '
                            f'\ndb object at {event} '
                            f'\nподключен к сессии - {request_session}]'))
                 return event.text, event.user_id
             # else:
             #     return None, event.user_id
-
 
     @staticmethod
     def hi(user_id):
@@ -133,32 +122,6 @@ class Bott:
             search_sex = 2
         return search_sex
 
-    def get_age_from(self):
-        msg_text, user_id = self.loop_bot()
-        write_msg(user_id,
-                  'введите возраст '
-                  'от - (минимальный возраст 18)')
-        msg_text, user_id = self.pattern_bot()
-        self.search_age_from = msg_text
-        if int(self.search_age_from) < 18:
-            write_msg(user_id, post1)
-            self.search_age_from = 18
-
-        else:
-            self.search_age_from = msg_text
-
-    def get_age_to(self):
-        msg_text, user_id = self.loop_bot()
-        write_msg(user_id, 'введите возраст до - ')
-        msg_text, user_id = self.pattern_bot()
-        self.search_age_to = msg_text
-
-    def get_hometown(self):
-        msg_text, user_id = self.loop_bot()
-        write_msg(user_id, 'введите город - .')
-        msg_text, user_id = self.pattern_bot()
-        self.search_hometoun = msg_text
-
     def method_reg_user(self, user_id):
         _session = Session()
         current_user_id = check_db_master(user_id, _session)
@@ -170,7 +133,6 @@ class Bott:
             self.reg_new_user(user_id)
             # sg_text, user_id = self.pattern_bot()
         return current_user_id, user_id
-
 
     def check_config_actions(self, user_id, _msg_text):
         conf = global_user_configs[user_id]
@@ -201,7 +163,6 @@ class Bott:
                 self.action_search(user_id)
         else:
             return
-
 
     def validation_user_settings(self, user_id):
         conf = global_user_configs[user_id]
@@ -321,9 +282,9 @@ class Bott:
         photo = Photo(_result_item['id'])
         user_photo = photo.get_photo()
         if (
-            user_photo == 'нет доступа к фото'
-            or dating_user is not None
-            or blocked_user is not None
+                user_photo == 'нет доступа к фото'
+                or dating_user is not None
+                or blocked_user is not None
         ):
             _result.pop(0)
             return self._send_dating_result(user_id)
@@ -333,7 +294,13 @@ class Bott:
         return _result_item
 
     # просматриваем избранные анкеты
+
     def go_to_favorites(self, ids):
+
+        """
+        функция просмотра избранных анкет
+        пользователя сохраненных в БД
+        """
         alls_users = check_db_favorites(ids)
         write_msg(ids, 'Избранные анкеты:')
         for nums, users in enumerate(alls_users):
@@ -355,9 +322,12 @@ class Bott:
                 write_msg(ids, start_post)
                 break
 
-
-    # переходим в черный список
+    # просматриваем черный список
     def go_to_blacklist(self, ids):
+        """
+        функция просмотра черного списка
+        пользователя сохраненного в БД
+        """
         all_users = check_db_black(ids)
         write_msg(ids, 'Анкеты в черном списке:')
         for num, user in enumerate(all_users):
@@ -383,8 +353,13 @@ class Bott:
                 write_msg(ids, start_post)
                 break
 
-    # проверяем посковый запрос пользователя
+    # сохраняем просмотренные пользователем анкеты
     def go_to_search(self, ids):
+        """
+        функция проверки поисковых
+        запросов пользователя
+        сохраненных в БД
+        """
         all_users = check_db_searcht(ids)
         write_msg(ids, 'Анкеты:')
         for num, user in enumerate(all_users):
@@ -406,27 +381,6 @@ class Bott:
             elif msg_texts.lower() == 'q':
                 write_msg(ids, start_post)
                 break
-
-    def method_favorits(self, current_user_id, hometown, i, result, user_id):
-        add_user(user_id,
-                 result[i]['id'],
-                 result[i]['last_name'],
-                 result[i]['first_name'],
-                 hometown,
-                 result[i]['profile'],
-                 current_user_id.id)
-
-
-
-
-
-
-
-
-
-
-
-
 
     # def pattern_search(self, current_user_id, search_uss, session):
     # msg_text, user_id = self.pattern_bot()
@@ -480,138 +434,127 @@ class Bott:
         if msg_text.lower() == 'парень':
             sex = 2
             search_uss.append(sex)
-        client = Client(user_id)
-        age_from = client.age - 3
+        client = Self_user()
+        age_from = client.user_bdate(user_id) - 3
         if age_from < 18:
             age_from = 18
             search_uss.append(age_from)
-        age_at = client.age + 3
+        age_at = client.user_bdate(user_id) + 3
         search_uss.append(age_at)
-        search_uss.append(client.age)
-        hometown = client.city
+        search_uss.append(client.user_bdate(user_id))
+        hometown = client.user_city(user_id)
         search_uss.append(hometown)
         user = Users(*search_uss)
         result = user.search_users()
         search_uss.clear()
         return result
 
-    # def run_bot(self):
-    #     msg_text, user_id = self.pattern_bot()
-    #     _session = Session()
-    #     current_user_id = check_db_master(user_id, _session)
-    #     if not current_user_id:
-    #         # msg_text, user_id = self.pattern_bot()
-    #         write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
-    #         self.reg_new_user(user_id)
-    #     return _session, user_id
+    # def main_loop(self):
+    #     """Main part of script"""
+    #
+    #     # Define functions
+    #     def run_listening():
+    #         """Runs longpoll_m listening"""
+    #
+    #         # Define functions for threads
+    #         def thread_for_conversation(event_obj_th, command_centre_t):
+    #             """Run command centre for conversation."""
+    #             message_object = event_obj_th.object
+    #             # Call command centre
+    #             command_centre_t.run_function(message_object)
+    #
+    #         def thread_for_user_chat(event_obj_th2, command_centre_t):
+    #             """Run command centre for user chat."""
+    #             message_object = event_obj_th2.object
+    #             # Call command centre
+    #             command_centre_t.run_function(message_object)
+    #
+    #         # Init thread vars
+    #         thread_Conv = False
+    #         thread_UChat = False
+    #
+    #         for event in longpoll.listen():
+    #             # Check for Conversation
+    #             if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_chat:
+    #                 if thread_Conv:
+    #                     if thread_Conv.isAlive() is False:
+    #                         # Stop thread when thread work finish.
+    #                         thread_Conv.join()
+    #                 # Make Thread
+    #                 thread_Conv = Thread(target=thread_for_conversation, args=(event, command_centre_m))
+    #                 # Start thread
+    #                 thread_Conv.start()
+    #
+    #             # Check for message from user.
+    #             if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_user:
+    #                 if thread_UChat:
+    #                     if thread_UChat.isAlive() is False:
+    #                         # Stop thread when thread work finish.
+    #                         thread_UChat.join()
+    #                 # Make Thread
+    #                 thread_UChat = Thread(target=thread_for_user_chat, args=(event, command_centre_m))
+    #                 # Start thread
+    #                 thread_UChat.start()
+    #
+    #     def check_internet_connection():
+    #         """Checks internet connection by sending a request to vk.com"""
+    #         try:
+    #             request = requests.get(url='https://vk.com/')
+    #             if request.status_code == 200:
+    #                 return True
+    #             else:
+    #                 return True
+    #         except requests.exceptions.RequestException:
+    #             return False
+    #
+    #     # Prevent crash bot when the internet goes down
+    #     while True:
+    #         try:
+    #             # Run longpoll_m listening.
+    #             run_listening()
+    #         except requests.exceptions.RequestException:
+    #             while True:
+    #                 # Check internet connection
+    #                 internet_status = check_internet_connection()
+    #                 # If everything is bad, we wait and try to connect again
+    #                 if internet_status:
+    #                     break
+    #                 else:
+    #                     print('VK_BOT [Longpoll Listening Error!]: Internet does not work!')
+    #                 # Time to rest!
+    #                 time.sleep(120)
 
-
-
-    def main_loop(self):
-        """Main part of script"""
-
-        # Define functions
-        def run_listening():
-            """Runs longpoll_m listening"""
-
-            # Define functions for threads
-            def thread_for_conversation(event_obj_th, command_centre_t):
-                """Run command centre for conversation."""
-                message_object = event_obj_th.object
-                # Call command centre
-                command_centre_t.run_function(message_object)
-
-            def thread_for_user_chat(event_obj_th2, command_centre_t):
-                """Run command centre for user chat."""
-                message_object = event_obj_th2.object
-                # Call command centre
-                command_centre_t.run_function(message_object)
-
-            # Init thread vars
-            thread_Conv = False
-            thread_UChat = False
-
-            for event in longpoll.listen():
-                # Check for Conversation
-                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_chat:
-                    if thread_Conv:
-                        if thread_Conv.isAlive() is False:
-                            # Stop thread when thread work finish.
-                            thread_Conv.join()
-                    # Make Thread
-                    thread_Conv = Thread(target=thread_for_conversation, args=(event, command_centre_m))
-                    # Start thread
-                    thread_Conv.start()
-
-                # Check for message from user.
-                if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_user:
-                    if thread_UChat:
-                        if thread_UChat.isAlive() is False:
-                            # Stop thread when thread work finish.
-                            thread_UChat.join()
-                    # Make Thread
-                    thread_UChat = Thread(target=thread_for_user_chat, args=(event, command_centre_m))
-                    # Start thread
-                    thread_UChat.start()
-
-        def check_internet_connection():
-            """Checks internet connection by sending a request to vk.com"""
-            try:
-                request = requests.get(url='https://vk.com/')
-                if request.status_code == 200:
-                    return True
-                else:
-                    return True
-            except requests.exceptions.RequestException:
-                return False
-
-        # Prevent crash bot when the internet goes down
-        while True:
-            try:
-                # Run longpoll_m listening.
-                run_listening()
-            except requests.exceptions.RequestException:
-                while True:
-                    # Check internet connection
-                    internet_status = check_internet_connection()
-                    # If everything is bad, we wait and try to connect again
-                    if internet_status:
-                        break
-                    else:
-                        print('VK_BOT [Longpoll Listening Error!]: Internet does not work!')
-                    # Time to rest!
-                    time.sleep(120)
-
-    def _response(self, userState, userId):
-
-        '''
-        В случае линейной цепочки вопросов без возможности возврата назад
-        Начало +-> Вопрос 1 +-> Вопрос 2 +-> Вопрос 3 +-> Конец
-            ^   +        ^   +        ^   +
-            +---+        +---+        +---+
-        достаточно только хранить номер вопроса,
-        на котором остановился пользователь.
-        Если же диалог предполагается более сложны,
-        разветвлённым и даже с возвратами на предыдущие шаги,
-        Начало +-> Вопрос 1 +-> Вопрос 2 +-> Конец
-                     +              ^
-                     +-> Вопрос 3 +-+ '''
-
-
-        users = []  # список пользователей
-        # если произошло какое-то событие (пришло сообщение)
-        for event in longpoll.listen():
-              # если id пользователя нет в списке:
-            if event.user_id not in users:
-                # то он добавляется в список...
-                users.append(event.user_id)
-                # ...и для него создаётся новый поток
-                thread = threading.Thread(target=self.chat1,
-                                          args=(event.user_id, request))
-                thread.start()
-                 # тот поток, чей id совпадает с id пользователя, который прислал новое сообщение...
-            if event.user_id == userId:
-                  if userState == 1:
-                      self.chat1(event.user_id, request)
-                  elif userState == 2:
-                      self.chat2(event.user_id, request)
+    # def _response(self, userState, userId):
+    #
+    #     """
+    #     В случае линейной цепочки вопросов без возможности возврата назад
+    #     Начало +-> Вопрос 1 +-> Вопрос 2 +-> Вопрос 3 +-> Конец
+    #         ^   +        ^   +        ^   +
+    #         +---+        +---+        +---+
+    #     достаточно только хранить номер вопроса,
+    #     на котором остановился пользователь.
+    #     Если же диалог предполагается более сложны,
+    #     разветвлённым и даже с возвратами на предыдущие шаги,
+    #     Начало +-> Вопрос 1 +-> Вопрос 2 +-> Конец
+    #                  +              ^
+    #                  +-> Вопрос 3 +-+
+    #     """
+    #
+    #
+    #     users = []  # список пользователей
+    #     # если произошло какое-то событие (пришло сообщение)
+    #     for event in longpoll.listen():
+    #           # если id пользователя нет в списке:
+    #         if event.user_id not in users:
+    #             # то он добавляется в список...
+    #             users.append(event.user_id)
+    #             # ...и для него создаётся новый поток
+    #             thread = threading.Thread(target=self.chat1,
+    #                                       args=(event.user_id, request))
+    #             thread.start()
+    #              # тот поток, чей id совпадает с id пользователя, который прислал новое сообщение...
+    #         if event.user_id == userId:
+    #               if userState == 1:
+    #                   self.chat1(event.user_id, request)
+    #               elif userState == 2:
+    #                   self.chat2(event.user_id, request)

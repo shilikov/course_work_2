@@ -1,10 +1,8 @@
 import vk_api
 from vk_api.longpoll import VkLongPoll
-from VK_token import VK_api_V, user_token, group_token, group_id
+from VK_token import VK_api_V, user_token
 from vk_api.exceptions import ApiError
 from logers.logers import log_to_console
-from vk_api.bot_longpoll import VkBotLongPoll
-from datetime import date
 # import collections
 # from vk_api.audio import VkAudio
 
@@ -19,7 +17,8 @@ class Api_connect:
     def _get_user_name(self, user_id):
         return self.vk_.users.get(user_id=user_id)[0].get('first_name')
 
-    def user_info(self, user_id):
+    @staticmethod
+    def user_info(user_id):
         user_search_dict = {}
         vk_ = vk_api.VkApi(token=user_token)
         user = vk_.method('users.get', {'user_id': user_id,
@@ -43,46 +42,43 @@ class Users:
         self.sex = sex
         self.hometown = hometown
 
-
     def params(self):
-        params = {
-                  'sort': 1,
-                  'count': 20,
-                  'sex': self.sex,
-                  'hometown': self.hometown,
-                  'status': 1,
-                  'age_from': self.age_from,
-                  'age_to': self.age_to,
-                  'online': 1,
-                  'fields': ['interests, '
-                             'music, '
-                             'movies, '
-                             'tv, '
-                             'books, '
-                             'games, '
-                             'sex, '
-                             'status']}
+        return {
+            'sort': 1,
+            'count': 20,
+            'sex': self.sex,
+            'hometown': self.hometown,
+            'status': 1,
+            'age_from': self.age_from,
+            'age_to': self.age_to,
+            'online': 1,
+            'fields': ['interests, '
+                       'music, '
+                       'movies, '
+                       'tv, '
+                       'books, '
+                       'games, '
+                       'sex, '
+                       'status']}
 
-        params_get_foto = {
-                  'sort': 1,
-                  'count': 20,
-                  'sex': self.sex,
-                  'hometown': self.hometown,
-                  'status': 1,
-                  'age_from': self.age_from,
-                  'age_to': self.age_to,
-                  'online': 1,
-                  'fields': ['interests, '
-                             'music, '
-                             'movies, '
-                             'tv, '
-                             'books, '
-                             'games, '
-                             'sex, '
-                             'status']}
-
-        return params
-
+    def params_get_foto(self):
+        return {
+            'sort': 1,
+            'count': 20,
+            'sex': self.sex,
+            'hometown': self.hometown,
+            'status': 1,
+            'age_from': self.age_from,
+            'age_to': self.age_to,
+            'online': 1,
+            'fields': ['interests, '
+                       'music, '
+                       'movies, '
+                       'tv, '
+                       'books, '
+                       'games, '
+                       'sex, '
+                       'status']}
 
     @log_to_console
     def search_users(self):
@@ -104,8 +100,9 @@ class Users:
             all_user.append(p)
         return all_user
 
-
     # @log_to_console
+
+
 class Photo:
     def __init__(self, user_owner_id):
         self.user_owner_id = user_owner_id
@@ -147,31 +144,6 @@ class Photo:
                 result.append(element)
         return sorted(result)
 
-    # def photo_get(owner_id):
-    #     user_photo = []
-    #     vk_= vk_api.VkApi(token=user_token)
-    #     try:
-    #         response = vk_.method('photos.get',
-    #                               {'extended': 1,
-    #                                'owner_id': owner_id,
-    #                                'album_id': 'profile',
-    #                                'photo_sizes': 1,
-    #                                'count': 20
-    #                                })
-    #     except ApiError:
-    #         return f'This profile is private - нет доступа к фото'
-
-
-        # for i in response['items']:
-        #         user_photo.append([i['likes']['count'],
-        #                            'photo' + str(i['owner_id']) + '_' + str(i['id'])])
-
-        # return sorted(user_photo[:3])
-
-class Music:
-    def __init__(self):
-        ...
-
 
 class Cities:
 
@@ -191,33 +163,10 @@ class Cities:
                 print('Москва' in x['title'])
 
 
-class Client:
-    def __init__(self, user_id):
-        self.user_id = user_id
 
-    def user_data(self):
-        self.vk_session = vk_api.VkApi(token=group_token)
-        self.longpoll = VkBotLongPoll(self.vk_session, group_id)
-        self.session_api = self.vk_session.get_api()
-        self.members_list = self.vk_session.method(
-            'messages.getConversationMembers', {
-                'peer_id': self.user_id, 'fields': ['city']})
-
-        self.city = self.members_list['profiles'][0]['city']['title']
-        self.members_list = self.vk_session.method(
-            'messages.getConversationMembers', {
-                'peer_id': self.user_id, 'fields': ['bdate']})
-        birth_date = self.members_list['profiles'][0]['bdate'].split('.')
-        today = date.today()
-        self.age = today.year - int(birth_date[2])
-        self.name = self.members_list['profiles'][0]['first_name']
-        # print(self.name)
-
-        return self.city, self.age, self.name
-
-
-
-
+    class Music:
+        def __init__(self):
+            ...
     # def music(self):
     #     """ Пример составления топа исполнителей для профиля вк """
     #
@@ -272,19 +221,19 @@ class Client:
     #         print('{}. {} {}'.format(n, track['title'], track['url']))
 
 
+
 # if __name__ == "__main__":
+#
+# slient = Client(683858243)
+# print(slient.user_data())
+# return sorted(response['items'])
 
-    # slient = Client(683858243)
-    # print(slient.albumi())
-    # return sorted(response['items'])
+# api = Api_connect()
+# api.user_info(686541705)
+# sity = Cities()
 
-    # api = Api_connect()
-    # api.user_info(686541705)
-    # sity = Cities()
-
-    # user = Users(1, 18, 20, 'москва')
-    # user.search_users()
-
+# user = Users(1, 18, 20, 'москва')
+# user.search_users()
 
 
 # photo = Photo(686541705)

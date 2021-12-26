@@ -1,8 +1,8 @@
-import vk_api
-from vk_api.bot_longpoll import VkBotLongPoll
-from VK_token import group_token, group_id
-from datetime import date
 
+import vk_api
+from VK_token import group_token, group_id
+from vk_api.bot_longpoll import VkBotLongPoll
+from datetime import date
 
 class Self_user:
 
@@ -45,7 +45,6 @@ class Self_user:
         self.age = today.year - int(birth_date[2])
         return self.age
 
-
     def user_city(self, user_id):
         self.id = user_id
         self.members_list = self.vk_session.method(
@@ -56,14 +55,55 @@ class Self_user:
         return self.city
 
     def user_info(self, user_id):
-
         user = self.vk_session.method('users.get', {'user_id': user_id,
-                                            'fields': 'relation, '
-                                                      'sex, '
-                                                      'hometown, '
-                                                      'bdate'})
+                                                    'fields': 'relation, '
+                                                              'sex, '
+                                                              'hometown, '
+                                                              'bdate'})
         return user
 
 
-sss = Self_user()
-print(sss.user_lastname(686541705))
+
+
+
+    # если недостаточно данных для автопоиска
+    # спрашиваем у пользователя
+
+    def get_age_from(self):
+        # msg_text, user_id = self.loop_bot()
+        # write_msg(user_id,
+        #           'введите возраст '
+        #           'от - (минимальный возраст 18)')
+        # msg_text, user_id = self.pattern_bot()
+        # self.search_age_from = msg_text
+        # if int(self.search_age_from) < 18:
+        #     write_msg(user_id, post1)
+        #     self.search_age_from = 18
+        #
+        # else:
+        #     self.search_age_from = msg_text
+        ...
+
+    def get_age_to(self):
+        # msg_text, user_id = self.loop_bot()
+        # write_msg(user_id, 'введите возраст до - ')
+        # msg_text, user_id = self.pattern_bot()
+        # self.search_age_to = msg_text
+        ...
+
+    def get_hometown(self):
+        # msg_text, user_id = self.loop_bot()
+        # write_msg(user_id, 'введите город - .')
+        # msg_text, user_id = self.pattern_bot()
+        # self.search_hometoun = msg_text
+        ...
+
+
+
+# if __name__ == "__main__":
+#
+#
+#     sss = Self_user()
+#     print(sss.user_lastname(686541705))
+#     print(sss.user_city(683858243))
+
