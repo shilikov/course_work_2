@@ -3,7 +3,6 @@ from collections import defaultdict
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from vk_api.bot_longpoll import VkBotLongPoll, VkBotEventType
-from vk_api.keyboard import VkKeyboard, VkKeyboardColor
 from data_search.data_search import Users, Photo, Client
 from data_base.db import engine, Session, User
 
@@ -17,7 +16,6 @@ from VK_token import (group_token, group_id,
                       user_token, VK_api_V)
 from logers.logers import log
 from pprint import pprint
-from vk_api.utils import get_random_id
 import requests
 from datetime import date
 from bots.bot_message import (post1, post2, post3, hello_post,
@@ -26,6 +24,9 @@ from bots.bot_message import (post1, post2, post3, hello_post,
 import threading
 from requests import request
 from threading import Thread
+from bot_keybords.keyboard_bot import (keyboard2,
+                                       keyboard3,
+                                       send_keyboard)
 # from libs import utils
 
 # Для работы с вк_апи
@@ -325,7 +326,7 @@ class Bott:
             write_msg(user_id, f'Приветствую Вас {self.user_data(user_id)}')
         result = False
         if not conf.get('sex'):
-            self.keyboard2(user_id=user_id, vk=self.vk_)
+            keyboard2(user_id=user_id, vk=self.vk_)
         elif not conf.get('age_from'):
             write_msg(user_id, 'введите возраст: от (минимальный возраст 18)\n Например: <от 18>')
         elif not conf.get('age_to'):
@@ -365,7 +366,7 @@ class Bott:
                 self.go_to_blacklist(user_id)
             else:
                 self.menu_bot(user_id)
-                self.send_keyboard(user_id)
+                send_keyboard(user_id)
 
     def action_search(self, user_id):
         """Запускает поиск с предварительной валидацией настройки"""
@@ -377,7 +378,7 @@ class Bott:
             result = user.search_users()
             global_result[user_id] = result
         self._send_dating_result(user_id)
-        self.keyboard3(user_id=user_id, vk=self.vk_)
+        keyboard3(user_id=user_id, vk=self.vk_)
 
     def action_add_blacklist(self, user_id, current_user_id):
         _result = global_result.get(user_id)
@@ -445,18 +446,6 @@ class Bott:
         write_msg(user_id, post3)
         return _result_item
 
-    def send_keyboard(self, user_id):
-        vk_session = vk_api.VkApi(token=group_token)
-        vk = vk_session.get_api()
-        keyboard = self.keyboard1()
-        vk.messages.send(
-            peer_id=user_id,
-            random_id=get_random_id(),
-            keyboard=keyboard.get_keyboard(),
-            message='Пример клавиатуры'
-        )
-        return vk
-
     def method_favorits(self, current_user_id, hometown, i, result, user_id):
         add_user(user_id,
                  result[i]['id'],
@@ -466,52 +455,6 @@ class Bott:
                  result[i]['profile'],
                  current_user_id.id)
 
-    def keyboard3(self, user_id, vk):
-        keyboard3 = VkKeyboard(one_time=True)
-        keyboard3.get_empty_keyboard()
-        keyboard3.add_button('добавить в избранное',
-                             VkKeyboardColor.SECONDARY)
-        keyboard3.add_button('заблокировать',
-                             VkKeyboardColor.POSITIVE)
-        keyboard3.add_line()
-        keyboard3.add_button('далее',
-                             VkKeyboardColor.NEGATIVE)
-        keyboard3.add_button('выход',
-                             VkKeyboardColor.NEGATIVE)
-        vk.messages.send(
-            peer_id=user_id,
-            random_id=get_random_id(),
-            keyboard=keyboard3.get_keyboard(),
-            message='Выберите действие для кандидата'
-        )
-
-    def keyboard2(self, user_id, vk):
-        keyboard2 = VkKeyboard(one_time=True)
-        keyboard2.get_empty_keyboard()
-        keyboard2.add_button('М Ж',
-                             VkKeyboardColor.SECONDARY)
-        keyboard2.add_button('девушка',
-                             VkKeyboardColor.POSITIVE)
-        keyboard2.add_button('парень',
-                             VkKeyboardColor.NEGATIVE)
-        vk.messages.send(
-            peer_id=user_id,
-            random_id=get_random_id(),
-            keyboard=keyboard2.get_keyboard(),
-            message='введите пол кого хотите найти'
-        )
-
-    def keyboard1(self):
-        keyboard = VkKeyboard(one_time=True)
-        keyboard.add_button('поиск',
-                            color=VkKeyboardColor.SECONDARY)
-        keyboard.add_line()
-        keyboard.add_button('избранное',
-                            color=VkKeyboardColor.POSITIVE)
-        keyboard.add_line()
-        keyboard.add_button('спам',
-                            color=VkKeyboardColor.NEGATIVE)
-        return keyboard
 
 
 
