@@ -24,9 +24,7 @@ from bots.bot_message import (post1, post2, post3, hello_post,
 import threading
 from requests import request
 from threading import Thread
-from bot_keybords.keyboard_bot import (keyboard2,
-                                       keyboard3,
-                                       send_keyboard)
+from bot_keybords.keyboard_bot import (keyboard3, keyboard2, send_keyboard)
 # from libs import utils
 
 # Для работы с вк_апи
@@ -242,15 +240,15 @@ class Bott:
             # sg_text, user_id = self.pattern_bot()
         return current_user_id, user_id
 
-    def run_bot(self):
-        msg_text, user_id = self.pattern_bot()
-        _session = Session()
-        current_user_id = check_db_master(user_id, _session)
-        if not current_user_id:
-            # msg_text, user_id = self.pattern_bot()
-            write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
-            self.reg_new_user(user_id)
-        return _session, user_id
+    # def run_bot(self):
+    #     msg_text, user_id = self.pattern_bot()
+    #     _session = Session()
+    #     current_user_id = check_db_master(user_id, _session)
+    #     if not current_user_id:
+    #         # msg_text, user_id = self.pattern_bot()
+    #         write_msg(user_id, 'вы не зарегистрированы, пройдите регистрацию')
+    #         self.reg_new_user(user_id)
+    #     return _session, user_id
 
     def user_info(self, user_id):
         user = self.vk.method('users.get', {'user_id': user_id,
@@ -304,10 +302,17 @@ class Bott:
             _from = int(_msg_text[2:].strip())
             conf['age_from'] = _from
             write_msg(user_id, f'вы выбрали {_msg_text}')
+            if int(_from) < 18:
+                write_msg(user_id, post1)
+                conf['age_from'] = 18
 
         elif _msg_text.startswith('до '):
             _from = int(_msg_text[2:].strip())
             conf['age_to'] = _from
+            if int(conf['age_to']) < int(conf['age_from']):
+                write_msg(user_id,
+                          'выбран неверный возрастной интервал')
+                conf['age_to'] = conf['age_from']
 
         elif _msg_text.startswith('город '):
             self.search_hometoun = _msg_text[5:].strip()
