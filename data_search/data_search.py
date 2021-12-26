@@ -14,6 +14,10 @@ class Api_connect:
         self.token = user_token
         self.vk = vk_api.VkApi(token=self.token)
         self.longpoll = VkLongPoll(vk=self.vk)
+        self.vk_ = self.vk.get_api()
+
+    def _get_user_name(self, user_id):
+        return self.vk_.users.get(user_id=user_id)[0].get('first_name')
 
     def user_info(self, user_id):
         user_search_dict = {}
@@ -39,29 +43,54 @@ class Users:
         self.sex = sex
         self.hometown = hometown
 
+
+    def params(self):
+        params = {
+                  'sort': 1,
+                  'count': 20,
+                  'sex': self.sex,
+                  'hometown': self.hometown,
+                  'status': 1,
+                  'age_from': self.age_from,
+                  'age_to': self.age_to,
+                  'online': 1,
+                  'fields': ['interests, '
+                             'music, '
+                             'movies, '
+                             'tv, '
+                             'books, '
+                             'games, '
+                             'sex, '
+                             'status']}
+
+        params_get_foto = {
+                  'sort': 1,
+                  'count': 20,
+                  'sex': self.sex,
+                  'hometown': self.hometown,
+                  'status': 1,
+                  'age_from': self.age_from,
+                  'age_to': self.age_to,
+                  'online': 1,
+                  'fields': ['interests, '
+                             'music, '
+                             'movies, '
+                             'tv, '
+                             'books, '
+                             'games, '
+                             'sex, '
+                             'status']}
+
+        return params
+
+
     @log_to_console
     def search_users(self):
         all_user = []
         profile = 'https://vk.com/id'
         vk_ = vk_api.VkApi(token=user_token)
         response = vk_.method('users.search',
-                              {
-                                  'sort': 1,
-                                  'count': 20,
-                                  'sex': self.sex,
-                                  'hometown': self.hometown,
-                                  'status': 1,
-                                  'age_from': self.age_from,
-                                  'age_to': self.age_to,
-                                  'online': 1,
-                                  'fields': ['interests, '
-                                             'music, '
-                                             'movies, '
-                                             'tv, '
-                                             'books, '
-                                             'games, '
-                                             'sex, '
-                                             'status']})
+                              self.params())
 
         for element in response['items']:
             person = [
@@ -133,11 +162,11 @@ class Photo:
     #         return f'This profile is private - нет доступа к фото'
 
 
-        for i in response['items']:
-                user_photo.append([i['likes']['count'],
-                                   'photo' + str(i['owner_id']) + '_' + str(i['id'])])
+        # for i in response['items']:
+        #         user_photo.append([i['likes']['count'],
+        #                            'photo' + str(i['owner_id']) + '_' + str(i['id'])])
 
-        return sorted(user_photo[:3])
+        # return sorted(user_photo[:3])
 
 class Music:
     def __init__(self):
@@ -185,6 +214,9 @@ class Client:
         # print(self.name)
 
         return self.city, self.age, self.name
+
+
+
 
     # def music(self):
     #     """ Пример составления топа исполнителей для профиля вк """
@@ -241,17 +273,18 @@ class Client:
 
 
 # if __name__ == "__main__":
-#
-#     # slient = Client(683858243)
-#     # print(slient.albumi())
-#     # return sorted(response['items'])
-#
-#     # api = Api_connect()
-#     # api.user_info(686541705)
-#     # sity = Cities()
-#
-#     user = Users(1, 18, 20, 'москва')
-#     user.search_users()
+
+    # slient = Client(683858243)
+    # print(slient.albumi())
+    # return sorted(response['items'])
+
+    # api = Api_connect()
+    # api.user_info(686541705)
+    # sity = Cities()
+
+    # user = Users(1, 18, 20, 'москва')
+    # user.search_users()
+
 
 
 # photo = Photo(686541705)
