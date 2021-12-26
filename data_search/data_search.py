@@ -61,18 +61,15 @@ class Users:
                                              'books, '
                                              'games, '
                                              'sex, '
+                                             'city, '
                                              'status']})
 
         for element in response['items']:
-            person = [
-                element['first_name'],
-                element['last_name'],
-                profile + str(element['id']),
-                element['id']
-            ]
-            s = ['first_name', 'last_name', 'profile', 'id']
-            p = dict(zip(s, person))
-            all_user.append(p)
+            element['profile'] = profile + str(element['id'])
+            element['city'] = element.get('city', {}).get('title', 'город-не-определен')
+            fields = ['id', 'first_name', 'last_name', 'profile', 'city']
+            person = {f: element.get(f) for f in fields}
+            all_user.append(person)
         return all_user
 
 
