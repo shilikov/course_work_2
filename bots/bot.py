@@ -35,6 +35,7 @@ connection = engine.connect()
 
 global_result = {}
 global_user_configs = defaultdict(dict)
+MAX_PHOTO_COUNT = 3  # можно вынесни на лобальный урвоень в  конфиге
 
 
 class Bott:
@@ -47,10 +48,10 @@ class Bott:
         self.connection = engine.connect()
         self._user = None
         self.search_sex = 0
-        self.search_age_from = ''
-        self.search_age_to = ''
-        self.search_hometoun = ''
-        self.search_id = ''
+        self.search_age_from = None
+        self.search_age_to = None
+        self.search_hometoun = None
+        self.search_id = None
 
     def pattern_bot(self):
         request_session = requests.Session()
@@ -104,7 +105,7 @@ class Bott:
             f'{item_result["profile"]}',
         ))
 
-        MAX_PHOTO_COUNT = 3  # можно вынесни на лобальный урвоень в  конфиге
+
         slice_step = -MAX_PHOTO_COUNT - 1
         for item_photo in sorted_user_photo[-1:slice_step:-1]:
             # [-1:-4:-1] вернет 3 эелемента с конца списка
@@ -164,6 +165,10 @@ class Bott:
         else:
             return
 
+    @staticmethod
+    def start_keyboard(user_id):
+        return send_keyboard(user_id)
+
     def validation_user_settings(self, user_id):
         conf = global_user_configs[user_id]
         all_fields = ['sex', 'age_from', 'age_to', 'hometown']
@@ -192,10 +197,11 @@ class Bott:
             current_user_id, user_id = self.method_reg_user(user_id)
 
             self.check_config_actions(user_id, msg_text)
-
+            
             validated = self.validation_user_settings(user_id)
             if not validated:
                 continue
+
 
             if msg_text == 'поиск':
                 self.action_search(user_id)
@@ -382,179 +388,7 @@ class Bott:
                 write_msg(ids, start_post)
                 break
 
-    # def pattern_search(self, current_user_id, search_uss, session):
-    # msg_text, user_id = self.pattern_bot()
-    # sex = msg_text
-    # if msg_text == 'М Ж':
-    #     sex = 0
-    #     search_uss.append(sex)
-    # if msg_text.lower() == 'девушка':
-    #     sex = 1
-    #     search_uss.append(sex)
-    # if msg_text.lower() == 'парень':
-    #     sex = 2
-    #     search_uss.append(sex)
-    # write_msg(user_id,
-    #           'введите возраст '
-    #           'от - (минимальный возраст 18)')
-    # msg_text, user_id = self.pattern_bot()
-    # age_from = msg_text
-    # if int(age_from) < 18:
-    #     write_msg(user_id, post1)
-    #     age_from = 18
-    #     search_uss.append(age_from)
-    # else:
-    #     search_uss.append(age_from)
-    # write_msg(user_id, 'введите возраст до - ')
-    # msg_text, user_id = self.pattern_bot()
-    # age_to = msg_text
-    # search_uss.append(age_to)
-    # write_msg(user_id, 'введите город - .')
-    # msg_text, user_id = self.pattern_bot()
-    # hometown = msg_text
-    # search_uss.append(hometown)
-    # # Ищем анкеты
-    # user = Users(*search_uss)
-    # result = user.search_users()
-    # search_uss.clear()
-    # # json_create(result)
-    # current_user_id = check_db_master(
-    #     user_id, session=session)
-    # return current_user_id, hometown, result, user_id
 
-    def method_auto_search(self, search_uss):
-        msg_text, user_id = self.pattern_bot()
-        sex = msg_text
-        if msg_text == 'М Ж':
-            sex = 0
-            search_uss.append(sex)
-        if msg_text.lower() == 'девушка':
-            sex = 1
-            search_uss.append(sex)
-        if msg_text.lower() == 'парень':
-            sex = 2
-            search_uss.append(sex)
-        client = Self_user()
-        age_from = client.user_bdate(user_id) - 3
-        if age_from < 18:
-            age_from = 18
-            search_uss.append(age_from)
-        age_at = client.user_bdate(user_id) + 3
-        search_uss.append(age_at)
-        search_uss.append(client.user_bdate(user_id))
-        hometown = client.user_city(user_id)
-        search_uss.append(hometown)
-        user = Users(*search_uss)
-        result = user.search_users()
-        search_uss.clear()
-        return result
 
-    # def main_loop(self):
-    #     """Main part of script"""
-    #
-    #     # Define functions
-    #     def run_listening():
-    #         """Runs longpoll_m listening"""
-    #
-    #         # Define functions for threads
-    #         def thread_for_conversation(event_obj_th, command_centre_t):
-    #             """Run command centre for conversation."""
-    #             message_object = event_obj_th.object
-    #             # Call command centre
-    #             command_centre_t.run_function(message_object)
-    #
-    #         def thread_for_user_chat(event_obj_th2, command_centre_t):
-    #             """Run command centre for user chat."""
-    #             message_object = event_obj_th2.object
-    #             # Call command centre
-    #             command_centre_t.run_function(message_object)
-    #
-    #         # Init thread vars
-    #         thread_Conv = False
-    #         thread_UChat = False
-    #
-    #         for event in longpoll.listen():
-    #             # Check for Conversation
-    #             if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_chat:
-    #                 if thread_Conv:
-    #                     if thread_Conv.isAlive() is False:
-    #                         # Stop thread when thread work finish.
-    #                         thread_Conv.join()
-    #                 # Make Thread
-    #                 thread_Conv = Thread(target=thread_for_conversation, args=(event, command_centre_m))
-    #                 # Start thread
-    #                 thread_Conv.start()
-    #
-    #             # Check for message from user.
-    #             if event.type == VkBotEventType.MESSAGE_NEW and event.object.text and event.from_user:
-    #                 if thread_UChat:
-    #                     if thread_UChat.isAlive() is False:
-    #                         # Stop thread when thread work finish.
-    #                         thread_UChat.join()
-    #                 # Make Thread
-    #                 thread_UChat = Thread(target=thread_for_user_chat, args=(event, command_centre_m))
-    #                 # Start thread
-    #                 thread_UChat.start()
-    #
-    #     def check_internet_connection():
-    #         """Checks internet connection by sending a request to vk.com"""
-    #         try:
-    #             request = requests.get(url='https://vk.com/')
-    #             if request.status_code == 200:
-    #                 return True
-    #             else:
-    #                 return True
-    #         except requests.exceptions.RequestException:
-    #             return False
-    #
-    #     # Prevent crash bot when the internet goes down
-    #     while True:
-    #         try:
-    #             # Run longpoll_m listening.
-    #             run_listening()
-    #         except requests.exceptions.RequestException:
-    #             while True:
-    #                 # Check internet connection
-    #                 internet_status = check_internet_connection()
-    #                 # If everything is bad, we wait and try to connect again
-    #                 if internet_status:
-    #                     break
-    #                 else:
-    #                     print('VK_BOT [Longpoll Listening Error!]: Internet does not work!')
-    #                 # Time to rest!
-    #                 time.sleep(120)
 
-    # def _response(self, userState, userId):
-    #
-    #     """
-    #     В случае линейной цепочки вопросов без возможности возврата назад
-    #     Начало +-> Вопрос 1 +-> Вопрос 2 +-> Вопрос 3 +-> Конец
-    #         ^   +        ^   +        ^   +
-    #         +---+        +---+        +---+
-    #     достаточно только хранить номер вопроса,
-    #     на котором остановился пользователь.
-    #     Если же диалог предполагается более сложны,
-    #     разветвлённым и даже с возвратами на предыдущие шаги,
-    #     Начало +-> Вопрос 1 +-> Вопрос 2 +-> Конец
-    #                  +              ^
-    #                  +-> Вопрос 3 +-+
-    #     """
-    #
-    #
-    #     users = []  # список пользователей
-    #     # если произошло какое-то событие (пришло сообщение)
-    #     for event in longpoll.listen():
-    #           # если id пользователя нет в списке:
-    #         if event.user_id not in users:
-    #             # то он добавляется в список...
-    #             users.append(event.user_id)
-    #             # ...и для него создаётся новый поток
-    #             thread = threading.Thread(target=self.chat1,
-    #                                       args=(event.user_id, request))
-    #             thread.start()
-    #              # тот поток, чей id совпадает с id пользователя, который прислал новое сообщение...
-    #         if event.user_id == userId:
-    #               if userState == 1:
-    #                   self.chat1(event.user_id, request)
-    #               elif userState == 2:
-    #                   self.chat2(event.user_id, request)
+
