@@ -42,6 +42,7 @@ class Users:
         self.sex = sex
         self.hometown = hometown
 
+    @property
     def params(self):
         return {
             'sort': 1,
@@ -61,6 +62,7 @@ class Users:
                        'sex, '
                        'status']}
 
+    @property
     def params_get_foto(self):
         return {
             'sort': 1,
@@ -86,7 +88,7 @@ class Users:
         profile = 'https://vk.com/id'
         vk_ = vk_api.VkApi(token=user_token)
         response = vk_.method('users.search',
-                              self.params())
+                              self.params)
 
         for element in response['items']:
             person = [
@@ -95,10 +97,13 @@ class Users:
                 profile + str(element['id']),
                 element['id']
             ]
+
             s = ['first_name', 'last_name', 'profile', 'id']
             p = dict(zip(s, person))
             all_user.append(p)
-        return all_user
+        # print(None if len(response['items']) < 1 else response['items'])
+        return None if len(response['items']) < 1 else all_user
+
 
     # @log_to_console
 
@@ -108,6 +113,7 @@ class Photo:
         self.user_owner_id = user_owner_id
 
     # @classmethod
+    @property
     def get_photo(self):
         vk_ = vk_api.VkApi(token=user_token)
         try:
@@ -232,7 +238,7 @@ class Cities:
 # api.user_info(686541705)
 # sity = Cities()
 
-# user = Users(1, 18, 20, 'москва')
+# user = Users(1, 18, 20, 'Москва')
 # user.search_users()
 
 

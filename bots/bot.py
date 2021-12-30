@@ -52,6 +52,9 @@ class Bott:
         self.search_age_to = None
         self.search_hometoun = None
         self.search_id = None
+        self.search_f_name = None
+        self.search_l_name = None
+        self.search_i_id = None
 
     def pattern_bot(self):
         request_session = requests.Session()
@@ -96,15 +99,20 @@ class Bott:
                   start_post)
         register_user(id_num)
 
+
     def method_photo(self, photo, item_result, user_id, user_photo):
         sorted_user_photo = photo.sort_likes(user_photo)
         # Выводим отсортированные данные по анкетам
+        self.search_f_name = item_result["first_name"]
+        self.search_l_name = item_result["last_name"]
+        self.search_i_id = item_result["profile"]
+        if self.search_f_name == '':
+            write_msg(user_id, 'по вашему запросу нет результатов')
         write_msg(user_id, (
-            f'\n{item_result["first_name"]}'
-            f'{item_result["last_name"]} '
-            f'{item_result["profile"]}',
+            f'\nиме - {self.search_f_name}'
+            f'\nфамилия - {self.search_l_name} '
+            f'\nссылка - {self.search_i_id}',
         ))
-
 
         slice_step = -MAX_PHOTO_COUNT - 1
         for item_photo in sorted_user_photo[-1:slice_step:-1]:
@@ -197,11 +205,12 @@ class Bott:
             current_user_id, user_id = self.method_reg_user(user_id)
 
             self.check_config_actions(user_id, msg_text)
-            
+
+
             validated = self.validation_user_settings(user_id)
+
             if not validated:
                 continue
-
 
             if msg_text == 'поиск':
                 self.action_search(user_id)
@@ -213,6 +222,7 @@ class Bott:
                 self.action_add_blacklist(user_id, current_user_id)
             elif msg_text.lower() == 'выход':
                 write_msg(user_id, start_post)
+                global_user_configs[user_id].clear()
             elif msg_text == 'избранное':
                 self.go_to_favorites(user_id)
             elif msg_text == 'спам':
@@ -221,15 +231,19 @@ class Bott:
                 self.menu_bot(user_id)
                 send_keyboard(user_id)
 
+
     def action_search(self, user_id):
         """Запускает поиск с предварительной валидацией настройки"""
 
         conf = global_user_configs[user_id]
         user = Users(**conf)
         result = global_result.get(user_id)
+        print(result)
         if not result:
             result = user.search_users()
+            print(result)
             global_result[user_id] = result
+            print(global_result[user_id])
         self._send_dating_result(user_id)
         keyboard3(user_id=user_id, vk=self.vk_)
 
@@ -283,20 +297,23 @@ class Bott:
             self.show_info(user_id)
             return None
         _result_item = _result[0]
+        print(_result_item)
         dating_user, blocked_user = check_db_user(_result_item['id'])
         # Получаем фото и сортируем по лайкам
         photo = Photo(_result_item['id'])
-        user_photo = photo.get_photo()
+        user_photo = photo.get_photo
         if (
                 user_photo == 'нет доступа к фото'
                 or dating_user is not None
                 or blocked_user is not None
         ):
             _result.pop(0)
+            print(self._send_dating_result(user_id=user_id))
             return self._send_dating_result(user_id)
 
         self.method_photo(photo, _result_item, user_id, user_photo)
         write_msg(user_id, post3)
+        # print(self.)
         return _result_item
 
     # просматриваем избранные анкеты
@@ -388,7 +405,13 @@ class Bott:
                 write_msg(ids, start_post)
                 break
 
-
-
-
-
+    def get_criteria_list(self, user_id):
+        """функция для просмотра списка критериев"""
+        f_name = f'{self._user.user_lastname(user_id)} ' \
+                 f'{self._user.user_first_name(user_id)}'
+        print(f'Список критериев: пользователя {user_id} {f_name}')
+        write_msg(user_id, 'Список критериев:')
+        criteria = global_user_configs[user_id]
+        for key, value in criteria.items():
+            write_msg(user_id, f'\t{key} - {value}')
+            print(user_id, f'\t{key} - {value}')
