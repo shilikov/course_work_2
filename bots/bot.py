@@ -21,7 +21,7 @@ from bots.bot_message import (post1, post3, hello_post,
 # import threading
 # from requests import request
 # from threading import Thread
-from bot_keybords.keyboard_bot import (keyboard3, keyboard2, send_keyboard)
+from bot_keybords.keyboard_bot import (keyboard3, keyboard2, send_keyboard, send_keyboard2)
 from user_data.user_data import Self_user
 
 # from libs import utils
@@ -77,6 +77,20 @@ class Bott:
                 return event.text, event.user_id
             # else:
             #     return None, event.user_id
+
+
+    def get_criteria_list(self, user_id):
+        """
+        функция для просмотра списка критериев
+        """
+        f_name = f'{self._user.user_lastname(user_id)} ' \
+                 f'{self._user.user_first_name(user_id)}'
+        print(f'Список критериев: пользователя {user_id} {f_name}')
+        write_msg(user_id, 'Список критериев:')
+        criteria = global_user_configs[user_id]
+        for key, value in criteria.items():
+            write_msg(user_id, f'\t{key} - {value}')
+            print(user_id, f'\t{key} - {value}')
 
     @staticmethod
     def hi(user_id):
@@ -203,16 +217,14 @@ class Bott:
             msg_text, user_id = self.pattern_bot()
             msg_text = msg_text.strip().lower()
             current_user_id, user_id = self.method_reg_user(user_id)
-
             self.check_config_actions(user_id, msg_text)
-
-
             validated = self.validation_user_settings(user_id)
 
-            if not validated:
+            if msg_text == 'start' and not validated:
                 continue
 
             if msg_text == 'поиск':
+                self.get_criteria_list(user_id=user_id)
                 self.action_search(user_id)
             elif msg_text == 'далее':
                 self.next_dating_result(user_id)
@@ -227,9 +239,13 @@ class Bott:
                 self.go_to_favorites(user_id)
             elif msg_text == 'спам':
                 self.go_to_blacklist(user_id)
-            else:
-                self.menu_bot(user_id)
-                send_keyboard(user_id)
+            elif msg_text == 'menu':
+                if validated:
+                    self.menu_bot(user_id)
+                    send_keyboard(user_id)
+                else:
+                    send_keyboard2(user_id)
+
 
 
     def action_search(self, user_id):
@@ -404,14 +420,4 @@ class Bott:
             elif msg_texts.lower() == 'q':
                 write_msg(ids, start_post)
                 break
-
-    def get_criteria_list(self, user_id):
-        """функция для просмотра списка критериев"""
-        f_name = f'{self._user.user_lastname(user_id)} ' \
-                 f'{self._user.user_first_name(user_id)}'
-        print(f'Список критериев: пользователя {user_id} {f_name}')
-        write_msg(user_id, 'Список критериев:')
-        criteria = global_user_configs[user_id]
-        for key, value in criteria.items():
-            write_msg(user_id, f'\t{key} - {value}')
-            print(user_id, f'\t{key} - {value}')
+                

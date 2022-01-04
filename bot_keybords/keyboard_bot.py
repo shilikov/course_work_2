@@ -14,12 +14,22 @@ def send_keyboard(user_id):
         peer_id=user_id,
         random_id=get_random_id(),
         keyboard=keyboard.get_keyboard(),
-        message='Пример клавиатуры'
+        message='что будем делать'
     )
     return vk
 
 
-
+def send_keyboard2(user_id):
+    vk_session = vk_api.VkApi(token=group_token)
+    vk = vk_session.get_api()
+    keyboard = keyboard10()
+    vk.messages.send(
+        peer_id=user_id,
+        random_id=get_random_id(),
+        keyboard=keyboard.get_keyboard(),
+        message='выбирите действие'
+    )
+    return vk
 
 
 def keyboard3(user_id, vk):
@@ -51,6 +61,9 @@ def keyboard2(user_id, vk):
                          VkKeyboardColor.POSITIVE)
     keyboard2.add_button('парень',
                          VkKeyboardColor.NEGATIVE)
+    keyboard2.add_line()
+    keyboard2.add_button('menu',
+                         VkKeyboardColor.NEGATIVE)
     vk.messages.send(
         peer_id=user_id,
         random_id=get_random_id(),
@@ -62,6 +75,19 @@ def keyboard2(user_id, vk):
 def keyboard1():
     keyboard = VkKeyboard(one_time=True)
     keyboard.add_button('поиск',
+                        color=VkKeyboardColor.SECONDARY)
+    keyboard.add_line()
+    keyboard.add_button('избранное',
+                        color=VkKeyboardColor.POSITIVE)
+    keyboard.add_line()
+    keyboard.add_button('спам',
+                        color=VkKeyboardColor.NEGATIVE)
+    return keyboard
+
+
+def keyboard10():
+    keyboard = VkKeyboard(one_time=True)
+    keyboard.add_button('start',
                         color=VkKeyboardColor.SECONDARY)
     keyboard.add_line()
     keyboard.add_button('избранное',
