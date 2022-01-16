@@ -17,12 +17,16 @@ from pprint import pprint
 import requests
 from bots.bot_message import (post1, post3, hello_post,
                               bot_menu, info_post, post5,
-                              start_post, post6, ation1_post, ation2_post)
+                              start_post, post6, ation1_post,
+                              ation2_post, bot_age, start_2)
 # import threading
 # from requests import request
 # from threading import Thread
-from bot_keybords.keyboard_bot import (keyboard3, keyboard2, send_keyboard, send_keyboard2)
-from user_data.user_data import Self_user
+from bot_keybords.keyboard_bot import (keyboard3,
+                                       keyboard2,
+                                       send_keyboard,
+                                       send_keyboard2)
+from user_data.user_data import SelfUser
 
 # from libs import utils
 
@@ -43,14 +47,6 @@ class Bott:
         self.user = User
         self.vk = vk_api.VkApi(token=group_token)
         self.vk_ = self.vk.get_api()
-        self.longpoll = VkLongPoll(self.vk)
-        self.session = requests.Session()
-        self.connection = engine.connect()
-        self._user = None
-        self.search_sex = 0
-        self.search_age_from = None
-        self.search_age_to = None
-        self.search_hometoun = None
         self.search_id = None
         self.search_f_name = None
         self.search_l_name = None
@@ -66,7 +62,7 @@ class Bott:
             if event.type == VkEventType.MESSAGE_NEW \
                     and event.to_me and event.text:
                 print('id{}: "{}"'.format(event.user_id, event.text), end=' ')
-                self._user = Self_user()
+                self._user = SelfUser()
                 f_name = f'{self._user.user_lastname(event.user_id)} ' \
                          f'{self._user.user_first_name(event.user_id)}'
                 pprint(log(f'[пользователь - '
@@ -75,14 +71,13 @@ class Bott:
                            f'\ndb object at {event} '
                            f'\nподключен к сессии - {request_session}]'))
                 return event.text, event.user_id
-            # else:
-            #     return None, event.user_id
-
 
     def get_criteria_list(self, user_id):
+
         """
         функция для просмотра списка критериев
         """
+
         f_name = f'{self._user.user_lastname(user_id)} ' \
                  f'{self._user.user_first_name(user_id)}'
         print(f'Список критериев: пользователя {user_id} {f_name}')
@@ -113,8 +108,9 @@ class Bott:
                   start_post)
         register_user(id_num)
 
+    def method_photo(self, photo, item_result,
+                     user_id, user_photo):
 
-    def method_photo(self, photo, item_result, user_id, user_photo):
         sorted_user_photo = photo.sort_likes(user_photo)
         # Выводим отсортированные данные по анкетам
         self.search_f_name = item_result["first_name"]
@@ -202,7 +198,7 @@ class Bott:
         if not conf.get('sex'):
             keyboard2(user_id=user_id, vk=self.vk_)
         elif not conf.get('age_from'):
-            write_msg(user_id, 'введите возраст: от (минимальный возраст 18)\n Например: <от 18>')
+            write_msg(user_id, bot_age)
         elif not conf.get('age_to'):
             write_msg(user_id, 'введите возраст до - \n  Например: <до 18>')
         elif not conf.get('hometown'):
@@ -246,8 +242,6 @@ class Bott:
                 else:
                     send_keyboard2(user_id)
 
-
-
     def action_search(self, user_id):
         """Запускает поиск с предварительной валидацией настройки"""
 
@@ -271,10 +265,12 @@ class Bott:
         result_item = _result.pop(0)
         is_black = add_to_black_list(
             user_id,
-            result_item['id'], result_item['last_name'], result_item['first_name'],
-            self.search_hometoun, result_item['profile'],
-            current_user_id.id
-        )
+            result_item['id'],
+            result_item['last_name'],
+            result_item['first_name'],
+            self.search_hometoun,
+            result_item['profile'],
+            current_user_id.id)
         if is_black:
             self.action_search(user_id)
 
@@ -288,15 +284,17 @@ class Bott:
         try:
             added = add_user(
                 user_id,
-                result_item['id'], result_item['last_name'], result_item['first_name'],
-                self.search_hometoun, result_item['profile'],
-                current_user_id.id,
-            )
+                result_item['id'],
+                result_item['last_name'],
+                result_item['first_name'],
+                self.search_hometoun,
+                result_item['profile'],
+                current_user_id.id,)
             #  можно передавать весь result_item, оставил функцию как есть
             if added:
                 self.action_search(user_id)
         except AttributeError:
-            write_msg(user_id, 'Вы не зарегистрировались!\n Введите start для перезагрузки бота')
+            write_msg(user_id, start_2)
 
     def next_dating_result(self, user_id):
         #  вырезаем крайнего кандидата из буфера после того как вернули
@@ -420,4 +418,3 @@ class Bott:
             elif msg_texts.lower() == 'q':
                 write_msg(ids, start_post)
                 break
-                

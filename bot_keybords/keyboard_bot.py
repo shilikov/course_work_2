@@ -5,7 +5,6 @@ from VK_token import group_token
 import vk_api
 
 
-
 def send_keyboard(user_id):
     vk_session = vk_api.VkApi(token=group_token)
     vk = vk_session.get_api()
